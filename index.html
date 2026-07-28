@@ -431,6 +431,84 @@ body.dictation-mode .app-shell {
   border-radius: 12px;
 }
 
+.form-field select:disabled {
+  color: var(--muted);
+  background: var(--paper-deep);
+  cursor: not-allowed;
+}
+
+.auto-advance-card {
+  position: relative;
+  display: grid;
+  min-height: 72px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  grid-template-columns: 46px 1fr;
+  gap: 13px;
+  align-items: center;
+}
+
+.auto-advance-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auto-advance-switch {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  background: var(--paper-deep);
+  border-radius: 999px;
+  transition: background 160ms ease;
+}
+
+.auto-advance-switch::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  content: "";
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(23, 33, 43, 0.18);
+  transition: transform 160ms ease;
+}
+
+.auto-advance-card input:checked + .auto-advance-switch {
+  background: var(--blue);
+}
+
+.auto-advance-card input:checked + .auto-advance-switch::after {
+  transform: translateX(20px);
+}
+
+.auto-advance-card input:focus-visible + .auto-advance-switch {
+  outline: 3px solid rgba(29, 95, 130, 0.2);
+  outline-offset: 3px;
+}
+
+.auto-advance-copy strong,
+.auto-advance-copy small {
+  display: block;
+}
+
+.auto-advance-copy strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.auto-advance-copy small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .notice {
   display: flex;
   gap: 12px;
@@ -1264,6 +1342,14 @@ body.dictation-mode .app-shell {
                   <option value="accent:en-AU">澳式英语 · Australian</option>
                   <option value="accent:en-CA">加拿大英语 · Canadian</option>
                 </select>
+              </label>
+              <label class="auto-advance-card form-field-wide">
+                <input id="autoAdvance" type="checkbox" />
+                <span class="auto-advance-switch" aria-hidden="true"></span>
+                <span class="auto-advance-copy">
+                  <strong>自动连续听写</strong>
+                  <small>每个单词朗读 3 遍，等待 5 秒后自动播放下一个</small>
+                </span>
               </label>
             </div>
 
@@ -5089,6 +5175,7 @@ window.DEFAULT_WORD_BANK = {
     rate: 0.8,
     repeat: 1,
     voiceURI: "",
+    autoAdvance: false,
   };
   const ACCENT_PRESETS = [
     { value: "", label: "自动选择（优先英式）", lang: "en-GB" },
@@ -5103,6 +5190,7 @@ window.DEFAULT_WORD_BANK = {
   let availableVoices = [];
   let toastTimer = null;
   let speechToken = 0;
+  let autoAdvanceCountdownTimer = null;
 
   const elements = {
     views: Array.from(document.querySelectorAll(".view")),
@@ -5120,6 +5208,7 @@ window.DEFAULT_WORD_BANK = {
     speechRate: document.getElementById("speechRate"),
     repeatCount: document.getElementById("repeatCount"),
     voiceSelect: document.getElementById("voiceSelect"),
+    autoAdvance: document.getElementById("autoAdvance"),
     resumeCard: document.getElementById("resumeCard"),
     resumeDescription: document.getElementById("resumeDescription"),
     resumeButton: document.getElementById("resumeButton"),
@@ -5336,7 +5425,9 @@ window.DEFAULT_WORD_BANK = {
     );
     if (modeInput) modeInput.checked = true;
     elements.speechRate.value = String(state.settings.rate);
-    elements.repeatCount.value = String(state.settings.repeat);
+    elements.autoAdvance.checked = Boolean(state.settings.autoAdvance);
+    elements.repeatCount.value = String(state.settings.autoAdvance ? 3 : state.settings.repeat);
+    elements.repeatCount.disabled = Boolean(state.settings.autoAdvance);
     elements.voiceSelect.value = state.settings.voiceURI || "";
   }
 
@@ -5344,9 +5435,18 @@ window.DEFAULT_WORD_BANK = {
     const modeInput = document.querySelector('input[name="dictationMode"]:checked');
     state.settings.mode = modeInput?.value === "random" ? "random" : "sequence";
     state.settings.rate = Number(elements.speechRate.value) || 0.8;
-    state.settings.repeat = Math.max(1, Math.min(3, Number(elements.repeatCount.value) || 1));
+    state.settings.autoAdvance = Boolean(elements.autoAdvance.checked);
+    state.settings.repeat = state.settings.autoAdvance
+      ? 3
+      : Math.max(1, Math.min(3, Number(elements.repeatCount.value) || 1));
     state.settings.voiceURI = elements.voiceSelect.value || "";
     saveState();
+  }
+
+  function updateAutoAdvanceControls() {
+    const enabled = Boolean(elements.autoAdvance.checked);
+    if (enabled) elements.repeatCount.value = "3";
+    elements.repeatCount.disabled = enabled;
   }
 
   function startSession() {
@@ -5383,6 +5483,7 @@ window.DEFAULT_WORD_BANK = {
       rate: state.settings.rate,
       repeat: state.settings.repeat,
       voiceURI: state.settings.voiceURI,
+      autoAdvance: state.settings.autoAdvance,
       cursor: 0,
       playedCount: order.length ? 1 : 0,
       order,
@@ -5471,6 +5572,8 @@ window.DEFAULT_WORD_BANK = {
         completed += 1;
         if (completed < repeat) {
           window.setTimeout(run, 620);
+        } else if (typeof options.onComplete === "function") {
+          options.onComplete();
         } else {
           elements.speakingStatus.textContent = "播放完成，可以书写或进入下一个";
         }
@@ -5488,7 +5591,51 @@ window.DEFAULT_WORD_BANK = {
 
   function stopSpeech() {
     speechToken += 1;
+    clearAutoAdvanceCountdown();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }
+
+  function clearAutoAdvanceCountdown() {
+    if (autoAdvanceCountdownTimer) {
+      window.clearInterval(autoAdvanceCountdownTimer);
+      autoAdvanceCountdownTimer = null;
+    }
+  }
+
+  function scheduleAutoAdvance(sessionId, cursor) {
+    clearAutoAdvanceCountdown();
+    const session = state.activeSession;
+    if (!session || session.id !== sessionId || session.cursor !== cursor || !session.autoAdvance) {
+      return;
+    }
+
+    let remainingSeconds = 5;
+    const updateStatus = () => {
+      const isLastWord = session.cursor >= session.order.length - 1;
+      elements.speakingStatus.textContent = isLastWord
+        ? `已朗读 3 遍，${remainingSeconds} 秒后自动完成听写`
+        : `已朗读 3 遍，${remainingSeconds} 秒后自动播放下一个`;
+    };
+
+    updateStatus();
+    autoAdvanceCountdownTimer = window.setInterval(() => {
+      remainingSeconds -= 1;
+      if (remainingSeconds > 0) {
+        updateStatus();
+        return;
+      }
+
+      clearAutoAdvanceCountdown();
+      const currentSession = state.activeSession;
+      if (
+        currentSession &&
+        currentSession.id === sessionId &&
+        currentSession.cursor === cursor &&
+        currentSession.autoAdvance
+      ) {
+        goToNextWord();
+      }
+    }, 1000);
   }
 
   function playCurrentWord() {
@@ -5498,8 +5645,11 @@ window.DEFAULT_WORD_BANK = {
     if (!item) return;
     speak(item.speech || item.word, {
       rate: session.rate,
-      repeat: session.repeat,
+      repeat: session.autoAdvance ? 3 : session.repeat,
       voiceURI: session.voiceURI,
+      onComplete: session.autoAdvance
+        ? () => scheduleAutoAdvance(session.id, session.cursor)
+        : null,
     });
   }
 
@@ -5991,6 +6141,10 @@ window.DEFAULT_WORD_BANK = {
     elements.speechRate.addEventListener("change", readSettingsFromControls);
     elements.repeatCount.addEventListener("change", readSettingsFromControls);
     elements.voiceSelect.addEventListener("change", readSettingsFromControls);
+    elements.autoAdvance.addEventListener("change", () => {
+      updateAutoAdvanceControls();
+      readSettingsFromControls();
+    });
 
     elements.testVoiceButton.addEventListener("click", () => {
       readSettingsFromControls();

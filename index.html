@@ -375,6 +375,29 @@ body.dictation-mode .app-shell {
   display: none;
 }
 
+.word-picker-toolbar {
+  position: sticky;
+  top: -12px;
+  z-index: 2;
+  display: flex;
+  padding: 8px 4px;
+  background: var(--paper-deep);
+  grid-column: 1 / -1;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.word-picker-toolbar button {
+  padding: 7px 10px;
+  color: var(--blue);
+  background: #fff;
+  border: 1px solid rgba(29, 95, 130, 0.2);
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .word-option {
   display: grid;
   min-width: 0;
@@ -506,7 +529,8 @@ body.dictation-mode .app-shell {
   grid-column: 1 / -1;
 }
 
-.form-field select {
+.form-field select,
+.form-field input {
   width: 100%;
   min-height: 48px;
   padding: 0 40px 0 13px;
@@ -514,6 +538,16 @@ body.dictation-mode .app-shell {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 12px;
+}
+
+.form-field input {
+  padding-right: 13px;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+  outline: 3px solid rgba(29, 95, 130, 0.14);
+  border-color: var(--blue);
 }
 
 .form-field select:disabled {
@@ -1115,6 +1149,11 @@ body.dictation-mode .app-shell {
   color: var(--ink);
 }
 
+.compact-empty-state {
+  padding: 22px 16px;
+  font-size: 12px;
+}
+
 .count-pill {
   padding: 6px 10px;
   color: var(--blue);
@@ -1140,6 +1179,120 @@ body.dictation-mode .app-shell {
   display: grid;
   gap: 8px;
   margin-top: 18px;
+}
+
+.manual-word-form {
+  display: grid;
+  margin: 20px 0 16px;
+  padding: 18px;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  gap: 16px;
+}
+
+.manual-word-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.manual-word-heading strong,
+.manual-word-heading small {
+  display: block;
+}
+
+.manual-word-heading small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.manual-word-heading > span {
+  padding: 5px 8px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.manual-word-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.manual-word-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.manual-word-actions .is-hidden {
+  display: none;
+}
+
+.manual-word-list {
+  display: grid;
+  gap: 8px;
+}
+
+.manual-word-row {
+  display: grid;
+  padding: 13px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.manual-word-copy {
+  min-width: 0;
+}
+
+.manual-word-copy strong,
+.manual-word-copy small {
+  display: block;
+}
+
+.manual-word-copy strong {
+  color: var(--blue-deep);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.manual-word-copy small {
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.manual-word-row .inline-actions {
+  flex-wrap: nowrap;
+}
+
+.bank-divider {
+  display: flex;
+  margin: 22px 0 14px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  align-items: center;
+  gap: 12px;
+}
+
+.bank-divider::before,
+.bank-divider::after {
+  height: 1px;
+  content: "";
+  background: var(--line);
+  flex: 1;
 }
 
 .custom-unit-row {
@@ -1275,6 +1428,28 @@ body.dictation-mode .app-shell {
 
   .word-picker {
     grid-template-columns: 1fr;
+  }
+
+  .manual-word-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-word-heading,
+  .manual-word-row {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .manual-word-heading {
+    flex-direction: column;
+  }
+
+  .manual-word-heading > span {
+    white-space: normal;
+  }
+
+  .manual-word-row .inline-actions {
+    justify-content: flex-end;
   }
 
   .setup-actions .button,
@@ -1604,8 +1779,46 @@ body.dictation-mode .app-shell {
               <span class="count-pill" id="bankSummary">8 个单元</span>
             </div>
             <p class="section-copy">
-              以后把新单词表交给我，我可以直接更新内置词库。你也可以在这里导入符合模板的 JSON 词库。
+              可以手动添加少量生词，也可以导入符合模板的 JSON 词库。手动添加的单词会自动保存在当前浏览器。
             </p>
+
+            <form class="manual-word-form" id="manualWordForm">
+              <div class="manual-word-heading">
+                <div>
+                  <strong>手动添加单词</strong>
+                  <small>可以放进现有 Unit，也可以放进“我的生词本”</small>
+                </div>
+                <span>新增单词使用手机系统美式发音</span>
+              </div>
+              <div class="manual-word-grid">
+                <label class="form-field">
+                  <span>放入哪个单元</span>
+                  <select id="manualWordUnit"></select>
+                </label>
+                <label class="form-field">
+                  <span>英文单词或短语</span>
+                  <input id="manualWordText" type="text" autocomplete="off" placeholder="例如：environment" required />
+                </label>
+                <label class="form-field">
+                  <span>词性（可以不填）</span>
+                  <input id="manualPartOfSpeech" type="text" autocomplete="off" placeholder="例如：n. / v. / adj." />
+                </label>
+                <label class="form-field">
+                  <span>中文意思</span>
+                  <input id="manualMeaning" type="text" autocomplete="off" placeholder="例如：环境" required />
+                </label>
+              </div>
+              <div class="manual-word-actions">
+                <button class="button button-primary" id="saveManualWordButton" type="submit">添加这个单词</button>
+                <button class="button button-secondary is-hidden" id="cancelManualWordEdit" type="button">取消修改</button>
+              </div>
+            </form>
+
+            <div class="manual-word-list" id="manualWordList"></div>
+
+            <div class="bank-divider">
+              <span>批量导入与导出</span>
+            </div>
             <div class="button-row">
               <label class="button button-primary file-button">
                 导入新词库
@@ -5307,6 +5520,7 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
   const audioBufferCache = new Map();
   const expandedUnitIds = new Set();
   let bundledFallbackNotified = false;
+  let editingManualWordId = null;
 
   const elements = {
     views: Array.from(document.querySelectorAll(".view")),
@@ -5351,6 +5565,14 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
     exportWordBankButton: document.getElementById("exportWordBankButton"),
     bankSummary: document.getElementById("bankSummary"),
     customUnitList: document.getElementById("customUnitList"),
+    manualWordForm: document.getElementById("manualWordForm"),
+    manualWordUnit: document.getElementById("manualWordUnit"),
+    manualWordText: document.getElementById("manualWordText"),
+    manualPartOfSpeech: document.getElementById("manualPartOfSpeech"),
+    manualMeaning: document.getElementById("manualMeaning"),
+    saveManualWordButton: document.getElementById("saveManualWordButton"),
+    cancelManualWordEdit: document.getElementById("cancelManualWordEdit"),
+    manualWordList: document.getElementById("manualWordList"),
     clearDataButton: document.getElementById("clearDataButton"),
     finishModal: document.getElementById("finishModal"),
     finishModalDescription: document.getElementById("finishModalDescription"),
@@ -5364,6 +5586,7 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
       schemaVersion: 2,
       settings: { ...DEFAULT_SETTINGS },
       customUnits: [],
+      manualWords: [],
       activeSession: null,
       history: [],
     };
@@ -5379,6 +5602,7 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
         schemaVersion: 2,
         settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) },
         customUnits: Array.isArray(parsed.customUnits) ? parsed.customUnits : [],
+        manualWords: Array.isArray(parsed.manualWords) ? parsed.manualWords : [],
         activeSession: parsed.activeSession || null,
         history: Array.isArray(parsed.history) ? parsed.history : [],
       };
@@ -5401,16 +5625,63 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
   }
 
   function getAllUnits() {
-    const units = [...(DEFAULT_BANK.units || [])];
+    const units = (DEFAULT_BANK.units || []).map((unit) => ({
+      ...unit,
+      words: [...(unit.words || [])],
+    }));
     const knownIds = new Set(units.map((unit) => unit.id));
     for (const unit of state.customUnits) {
+      const unitCopy = {
+        ...unit,
+        words: [...(unit.words || [])],
+      };
       if (knownIds.has(unit.id)) {
         const index = units.findIndex((item) => item.id === unit.id);
-        units[index] = unit;
+        units[index] = unitCopy;
       } else {
-        units.push(unit);
+        units.push(unitCopy);
         knownIds.add(unit.id);
       }
+    }
+
+    const manualWords = Array.isArray(state.manualWords) ? state.manualWords : [];
+    if (manualWords.some((word) => word.targetUnitId === "manual-vocabulary")) {
+      units.push({
+        id: "manual-vocabulary",
+        label: "我的生词本",
+        title: "My Vocabulary",
+        chineseTitle: "手动添加",
+        words: [],
+      });
+      knownIds.add("manual-vocabulary");
+    }
+
+    for (const manualWord of manualWords) {
+      const targetId = knownIds.has(manualWord.targetUnitId)
+        ? manualWord.targetUnitId
+        : "manual-vocabulary";
+      let targetUnit = units.find((unit) => unit.id === targetId);
+      if (!targetUnit) {
+        targetUnit = {
+          id: "manual-vocabulary",
+          label: "我的生词本",
+          title: "My Vocabulary",
+          chineseTitle: "手动添加",
+          words: [],
+        };
+        units.push(targetUnit);
+        knownIds.add("manual-vocabulary");
+      }
+      targetUnit.words.push({
+        id: manualWord.id,
+        word: manualWord.word,
+        speech: manualWord.speech || manualWord.word,
+        phonetic: "",
+        meaning: manualWord.partOfSpeech
+          ? `${manualWord.partOfSpeech} ${manualWord.meaning}`
+          : manualWord.meaning,
+        isManual: true,
+      });
     }
     return units;
   }
@@ -5499,6 +5770,13 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
   }
 
   function renderUnitGrid() {
+    const pickerScrollPositions = new Map();
+    elements.unitGrid.querySelectorAll(".unit-option[data-unit-id]").forEach((article) => {
+      const picker = article.querySelector(".word-picker");
+      if (picker) pickerScrollPositions.set(article.dataset.unitId, picker.scrollTop);
+    });
+    const pageScrollTop = window.scrollY;
+    const hadExistingGrid = elements.unitGrid.childElementCount > 0;
     const units = getAllUnits();
     const validIds = new Set(units.map((unit) => unit.id));
     state.settings.selectedUnits = state.settings.selectedUnits.filter((id) => validIds.has(id));
@@ -5542,7 +5820,10 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
           })
           .join("");
         return `
-          <article class="unit-option ${expanded ? "is-expanded" : ""}">
+          <article
+            class="unit-option ${expanded ? "is-expanded" : ""}"
+            data-unit-id="${escapeHtml(unit.id)}"
+          >
             <div class="unit-header">
               <label class="unit-selector">
                 <input
@@ -5570,6 +5851,10 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
               >${expanded ? "收起选词" : "展开选词"}</button>
             </div>
             <div class="word-picker ${expanded ? "" : "is-hidden"}">
+              <div class="word-picker-toolbar">
+                <button type="button" data-word-selection-action="all" data-unit-id="${escapeHtml(unit.id)}">全选本单元</button>
+                <button type="button" data-word-selection-action="none" data-unit-id="${escapeHtml(unit.id)}">清空本单元</button>
+              </div>
               ${wordOptions}
             </div>
           </article>
@@ -5582,6 +5867,14 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
       const total = Number(input.dataset.totalCount) || 0;
       input.indeterminate = included > 0 && included < total;
     });
+    elements.unitGrid.querySelectorAll(".unit-option[data-unit-id]").forEach((article) => {
+      const savedScrollTop = pickerScrollPositions.get(article.dataset.unitId);
+      const picker = article.querySelector(".word-picker");
+      if (picker && Number.isFinite(savedScrollTop)) picker.scrollTop = savedScrollTop;
+    });
+    if (hadExistingGrid) {
+      window.scrollTo({ top: pageScrollTop, behavior: "auto" });
+    }
     updateSelectionSummary();
   }
 
@@ -6184,6 +6477,7 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
     const allUnits = getAllUnits();
     const wordCount = allUnits.reduce((sum, unit) => sum + (unit.words?.length || 0), 0);
     elements.bankSummary.textContent = `${allUnits.length} 个单元 · ${wordCount} 个词`;
+    renderManualWordManager(allUnits);
 
     if (!state.customUnits.length) {
       elements.customUnitList.innerHTML = `
@@ -6208,6 +6502,156 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
         `,
       )
       .join("");
+  }
+
+  function renderManualWordManager(allUnits = getAllUnits()) {
+    const previousTarget = elements.manualWordUnit.value || "manual-vocabulary";
+    const selectableUnits = allUnits.filter((unit) => unit.id !== "manual-vocabulary");
+    elements.manualWordUnit.innerHTML = [
+      '<option value="manual-vocabulary">我的生词本（独立分组）</option>',
+      ...selectableUnits.map(
+        (unit) =>
+          `<option value="${escapeHtml(unit.id)}">${escapeHtml(unit.label || unit.id)} · ${escapeHtml(unit.chineseTitle || unit.title || "")}</option>`,
+      ),
+    ].join("");
+
+    const validTargets = new Set([
+      "manual-vocabulary",
+      ...selectableUnits.map((unit) => unit.id),
+    ]);
+    elements.manualWordUnit.value = validTargets.has(previousTarget)
+      ? previousTarget
+      : "manual-vocabulary";
+
+    const unitLabels = new Map(
+      allUnits.map((unit) => [unit.id, unit.label || unit.id]),
+    );
+    unitLabels.set("manual-vocabulary", "我的生词本");
+    const manualWords = Array.isArray(state.manualWords) ? state.manualWords : [];
+    if (!manualWords.length) {
+      elements.manualWordList.innerHTML = `
+        <div class="empty-state compact-empty-state">
+          还没有手动添加的单词。填写上面的内容后，它会出现在首页对应的单元中。
+        </div>
+      `;
+      return;
+    }
+
+    elements.manualWordList.innerHTML = manualWords
+      .map(
+        (word) => `
+          <div class="manual-word-row" data-manual-word-id="${escapeHtml(word.id)}">
+            <div class="manual-word-copy">
+              <strong>${escapeHtml(word.word)}</strong>
+              <small>${escapeHtml(
+                `${unitLabels.get(word.targetUnitId) || "我的生词本"} · ${
+                  word.partOfSpeech ? `${word.partOfSpeech} ` : ""
+                }${word.meaning}`,
+              )}</small>
+            </div>
+            <div class="inline-actions">
+              <button class="text-button" type="button" data-manual-word-action="edit">修改</button>
+              <button class="text-button" type="button" data-manual-word-action="delete">删除</button>
+            </div>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  function resetManualWordForm() {
+    editingManualWordId = null;
+    elements.manualWordForm.reset();
+    elements.manualWordUnit.value = "manual-vocabulary";
+    elements.saveManualWordButton.textContent = "添加这个单词";
+    elements.cancelManualWordEdit.classList.add("is-hidden");
+  }
+
+  function saveManualWord(event) {
+    event.preventDefault();
+    const targetUnitId = elements.manualWordUnit.value || "manual-vocabulary";
+    const wordText = elements.manualWordText.value.trim();
+    const partOfSpeech = elements.manualPartOfSpeech.value.trim();
+    const meaning = elements.manualMeaning.value.trim();
+
+    if (!wordText || !meaning) {
+      showToast("请填写英文单词和中文意思");
+      return;
+    }
+
+    const duplicate = (state.manualWords || []).find(
+      (item) =>
+        item.id !== editingManualWordId &&
+        item.targetUnitId === targetUnitId &&
+        item.word.toLowerCase() === wordText.toLowerCase(),
+    );
+    if (duplicate) {
+      showToast("这个单元里已经有相同的手动单词");
+      return;
+    }
+
+    if (editingManualWordId) {
+      const existing = state.manualWords.find((item) => item.id === editingManualWordId);
+      if (!existing) return;
+      existing.targetUnitId = targetUnitId;
+      existing.word = wordText;
+      existing.speech = wordText;
+      existing.partOfSpeech = partOfSpeech;
+      existing.meaning = meaning;
+      existing.updatedAt = new Date().toISOString();
+      showToast("单词修改已保存");
+    } else {
+      state.manualWords.push({
+        id: createId("manual-word"),
+        targetUnitId,
+        word: wordText,
+        speech: wordText,
+        partOfSpeech,
+        meaning,
+        createdAt: new Date().toISOString(),
+      });
+      showToast("单词已添加并自动保存");
+    }
+
+    if (
+      targetUnitId === "manual-vocabulary" &&
+      !state.settings.selectedUnits.includes("manual-vocabulary")
+    ) {
+      state.settings.selectedUnits.push("manual-vocabulary");
+    }
+    saveState();
+    resetManualWordForm();
+    renderBank();
+    renderUnitGrid();
+  }
+
+  function editManualWord(wordId) {
+    const word = (state.manualWords || []).find((item) => item.id === wordId);
+    if (!word) return;
+    editingManualWordId = wordId;
+    elements.manualWordUnit.value = word.targetUnitId || "manual-vocabulary";
+    elements.manualWordText.value = word.word || "";
+    elements.manualPartOfSpeech.value = word.partOfSpeech || "";
+    elements.manualMeaning.value = word.meaning || "";
+    elements.saveManualWordButton.textContent = "保存修改";
+    elements.cancelManualWordEdit.classList.remove("is-hidden");
+    elements.manualWordText.focus();
+    elements.manualWordForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function removeManualWord(wordId) {
+    const word = (state.manualWords || []).find((item) => item.id === wordId);
+    if (!word) return;
+    if (!window.confirm(`确认删除“${word.word}”吗？历史听写记录不会受影响。`)) return;
+    state.manualWords = state.manualWords.filter((item) => item.id !== wordId);
+    state.settings.excludedWordIds = (state.settings.excludedWordIds || []).filter(
+      (id) => id !== wordId,
+    );
+    if (editingManualWordId === wordId) resetManualWordForm();
+    saveState();
+    renderBank();
+    renderUnitGrid();
+    showToast("手动单词已删除");
   }
 
   function downloadFile(filename, content, type) {
@@ -6331,6 +6775,7 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
         schemaVersion: 2,
         settings: { ...DEFAULT_SETTINGS, ...(imported.settings || {}) },
         customUnits: Array.isArray(imported.customUnits) ? imported.customUnits : [],
+        manualWords: Array.isArray(imported.manualWords) ? imported.manualWords : [],
         activeSession: imported.activeSession || null,
         history: imported.history,
       };
@@ -6411,6 +6856,11 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
     if (!unit) return;
     if (!window.confirm(`确认删除“${unit.label}”吗？历史记录中的旧答案不会受影响。`)) return;
     state.customUnits = state.customUnits.filter((item) => item.id !== unitId);
+    state.manualWords = (state.manualWords || []).map((word) =>
+      word.targetUnitId === unitId
+        ? { ...word, targetUnitId: "manual-vocabulary" }
+        : word,
+    );
     state.settings.selectedUnits = state.settings.selectedUnits.filter((id) => id !== unitId);
     saveState();
     renderBank();
@@ -6468,6 +6918,36 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
     elements.brandHomeButton.addEventListener("click", () => setView("home"));
 
     elements.unitGrid.addEventListener("click", (event) => {
+      const selectionButton = event.target.closest("[data-word-selection-action]");
+      if (selectionButton) {
+        const unitId = selectionButton.dataset.unitId;
+        const unit = getAllUnits().find((item) => item.id === unitId);
+        if (!unit) return;
+        const excludedIds = new Set(state.settings.excludedWordIds || []);
+        const selectAll = selectionButton.dataset.wordSelectionAction === "all";
+        (unit.words || []).forEach((word, index) => {
+          const wordId = getWordIdentifier(word, unit.id, index);
+          if (selectAll) {
+            excludedIds.delete(wordId);
+          } else {
+            excludedIds.add(wordId);
+          }
+        });
+        if (selectAll) {
+          if (!state.settings.selectedUnits.includes(unitId)) {
+            state.settings.selectedUnits.push(unitId);
+          }
+        } else {
+          state.settings.selectedUnits = state.settings.selectedUnits.filter(
+            (id) => id !== unitId,
+          );
+        }
+        state.settings.excludedWordIds = Array.from(excludedIds);
+        saveState();
+        renderUnitGrid();
+        return;
+      }
+
       const button = event.target.closest("[data-expand-unit]");
       if (!button) return;
       const unitId = button.dataset.expandUnit;
@@ -6503,14 +6983,20 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
 
       if (input.matches("[data-word-checkbox]")) {
         const unitId = input.dataset.unitId;
+        const unit = getAllUnits().find((item) => item.id === unitId);
+        const unitWasSelected = state.settings.selectedUnits.includes(unitId);
         if (input.checked) {
+          if (!unitWasSelected) {
+            (unit?.words || []).forEach((word, index) => {
+              excludedIds.add(getWordIdentifier(word, unitId, index));
+            });
+          }
           excludedIds.delete(input.value);
-          if (!state.settings.selectedUnits.includes(unitId)) {
+          if (!unitWasSelected) {
             state.settings.selectedUnits.push(unitId);
           }
         } else {
           excludedIds.add(input.value);
-          const unit = getAllUnits().find((item) => item.id === unitId);
           const remaining = (unit?.words || []).filter(
             (word, index) =>
               !excludedIds.has(getWordIdentifier(word, unitId, index)),
@@ -6627,6 +7113,23 @@ window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","
     elements.wordBankFileInput.addEventListener("change", (event) => {
       const file = event.target.files?.[0];
       if (file) importWordBank(file);
+    });
+
+    elements.manualWordForm.addEventListener("submit", saveManualWord);
+    elements.cancelManualWordEdit.addEventListener("click", () => {
+      resetManualWordForm();
+      renderBank();
+    });
+    elements.manualWordList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-manual-word-action]");
+      const row = event.target.closest("[data-manual-word-id]");
+      if (!button || !row) return;
+      if (button.dataset.manualWordAction === "edit") {
+        editManualWord(row.dataset.manualWordId);
+      }
+      if (button.dataset.manualWordAction === "delete") {
+        removeManualWord(row.dataset.manualWordId);
+      }
     });
 
     elements.customUnitList.addEventListener("click", (event) => {

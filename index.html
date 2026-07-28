@@ -1,0 +1,6093 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f5f1e8" />
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
+    <meta
+      name="description"
+      content="可离线使用的七年级英语单词听写助手，支持多单元组合、随机听写、断点续听和历史批改。"
+    />
+    <title>听见单词｜英语听写助手</title>
+    <style>
+:root {
+  color-scheme: light;
+  --paper: #f5f1e8;
+  --paper-deep: #ebe4d6;
+  --card: rgba(255, 255, 255, 0.82);
+  --ink: #17212b;
+  --muted: #69737d;
+  --line: rgba(23, 33, 43, 0.12);
+  --blue: #1d5f82;
+  --blue-deep: #154965;
+  --blue-soft: #dcecf3;
+  --orange: #e7783f;
+  --orange-soft: #fde8dc;
+  --green: #23745a;
+  --green-soft: #dff1e9;
+  --red: #b4453e;
+  --red-soft: #f8dfdc;
+  --shadow: 0 18px 48px rgba(35, 44, 50, 0.09);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --safe-bottom: max(18px, env(safe-area-inset-bottom));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 90% 4%, rgba(231, 120, 63, 0.11), transparent 27rem),
+    radial-gradient(circle at 0% 32%, rgba(29, 95, 130, 0.11), transparent 30rem),
+    var(--paper);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button,
+label,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  color: inherit;
+}
+
+.app-shell {
+  width: min(100%, 860px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 18px calc(94px + var(--safe-bottom));
+}
+
+.topbar {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 74px;
+  padding: 10px 0;
+  background: rgba(245, 241, 232, 0.88);
+  border-bottom: 1px solid rgba(23, 33, 43, 0.07);
+  backdrop-filter: blur(18px);
+}
+
+body.dictation-mode .topbar {
+  display: none;
+}
+
+body.dictation-mode .app-shell {
+  padding-bottom: var(--safe-bottom);
+}
+
+.brand-button {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  margin-right: 11px;
+  color: #fff;
+  background: var(--blue);
+  border-radius: 14px;
+  place-items: center;
+  font-family: Georgia, serif;
+  font-weight: 700;
+}
+
+.brand-button strong,
+.brand-button small {
+  display: block;
+}
+
+.brand-button strong {
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+.brand-button small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.save-indicator {
+  color: var(--green);
+  font-size: 12px;
+}
+
+.view {
+  display: none;
+  animation: view-in 220ms ease both;
+}
+
+.view.is-active {
+  display: block;
+}
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero {
+  padding: 52px 4px 34px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--orange);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.hero h1,
+.page-heading h1,
+.listening-stage h1 {
+  margin: 0;
+  font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.hero h1 {
+  max-width: 620px;
+  font-size: clamp(34px, 8vw, 54px);
+  line-height: 1.12;
+}
+
+.hero > p:last-child {
+  max-width: 590px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.panel,
+.resume-card,
+.privacy-strip {
+  margin-bottom: 18px;
+  padding: 22px;
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.resume-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--blue-deep);
+  color: #fff;
+}
+
+.resume-card.is-hidden {
+  display: none;
+}
+
+.resume-card strong {
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.resume-card p {
+  margin: 8px 0 0 20px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 13px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: #7ce4b9;
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px rgba(124, 228, 185, 0.15);
+}
+
+.section-heading,
+.review-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-heading {
+  margin-bottom: 20px;
+}
+
+.section-heading h2,
+.danger-panel h2 {
+  margin: 2px 0 0;
+  font-size: 19px;
+}
+
+.step-label {
+  margin: 0;
+  color: var(--orange);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.inline-actions,
+.button-row,
+.setup-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.text-button {
+  padding: 8px 4px;
+  color: var(--blue);
+  background: none;
+  border: 0;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.unit-option {
+  position: relative;
+  display: block;
+}
+
+.unit-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.unit-card {
+  display: flex;
+  min-height: 104px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.unit-option input:checked + .unit-card {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.unit-option input:focus-visible + .unit-card {
+  outline: 3px solid rgba(29, 95, 130, 0.2);
+  outline-offset: 2px;
+}
+
+.unit-card strong,
+.unit-card small,
+.unit-card em {
+  display: block;
+}
+
+.unit-card strong {
+  font-size: 15px;
+}
+
+.unit-card small {
+  margin-top: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.unit-card em {
+  margin-top: 10px;
+  color: var(--blue);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.selection-summary {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.field-group {
+  min-width: 0;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.field-group legend,
+.form-field > span {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.segmented-control {
+  display: grid;
+  padding: 4px;
+  background: var(--paper-deep);
+  border-radius: 14px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.segmented-control label {
+  position: relative;
+}
+
+.segmented-control input {
+  position: absolute;
+  opacity: 0;
+}
+
+.segmented-control span {
+  display: block;
+  padding: 12px;
+  border-radius: 11px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.segmented-control input:checked + span {
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(23, 33, 43, 0.08);
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.settings-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.form-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 40px 0 13px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.notice {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 18px;
+  padding: 14px;
+  color: var(--blue-deep);
+  background: var(--blue-soft);
+  border-radius: 14px;
+}
+
+.notice span {
+  font-weight: 900;
+}
+
+.notice p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.setup-actions {
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 50px;
+  padding: 0 19px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+}
+
+.button:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.button-primary {
+  color: #fff;
+  background: var(--blue);
+  box-shadow: 0 10px 24px rgba(29, 95, 130, 0.2);
+}
+
+.button-secondary {
+  color: var(--blue-deep);
+  background: #fff;
+  border-color: var(--line);
+}
+
+.button-danger {
+  color: var(--red);
+  background: var(--red-soft);
+  border-color: rgba(180, 69, 62, 0.18);
+}
+
+.button-small {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+
+.button-large {
+  min-height: 62px;
+  border-radius: 18px;
+  font-size: 16px;
+}
+
+.privacy-strip {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: none;
+}
+
+.privacy-strip strong {
+  font-size: 14px;
+}
+
+.privacy-strip p,
+.section-copy,
+.danger-panel p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.bottom-nav {
+  position: fixed;
+  z-index: 30;
+  bottom: 14px;
+  left: 50%;
+  display: grid;
+  width: min(calc(100% - 28px), 500px);
+  padding: 7px;
+  background: rgba(23, 33, 43, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  box-shadow: 0 18px 48px rgba(23, 33, 43, 0.25);
+  backdrop-filter: blur(18px);
+  transform: translateX(-50%);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.bottom-nav.is-hidden {
+  display: none;
+}
+
+.bottom-nav button {
+  display: grid;
+  min-height: 56px;
+  color: rgba(255, 255, 255, 0.58);
+  background: transparent;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  place-items: center;
+}
+
+.bottom-nav button.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.bottom-nav span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.bottom-nav small {
+  font-size: 11px;
+}
+
+.dictation-view {
+  min-height: calc(100vh - 94px);
+  padding-bottom: 20px;
+}
+
+.dictation-topline {
+  display: grid;
+  min-height: 74px;
+  align-items: center;
+  grid-template-columns: 48px 1fr 48px;
+}
+
+.icon-button,
+.end-button {
+  min-width: 44px;
+  min-height: 44px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  cursor: pointer;
+}
+
+.end-button {
+  color: var(--red);
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.dictation-meta {
+  text-align: center;
+}
+
+.dictation-meta span,
+.dictation-meta strong {
+  display: block;
+}
+
+.dictation-meta span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.dictation-meta strong {
+  margin-top: 2px;
+  font-size: 14px;
+}
+
+.progress-track {
+  height: 5px;
+  overflow: hidden;
+  background: var(--paper-deep);
+  border-radius: 999px;
+}
+
+.progress-track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--orange);
+  border-radius: inherit;
+  transition: width 240ms ease;
+}
+
+.listening-stage {
+  display: flex;
+  min-height: calc(100vh - 340px);
+  padding: 36px 12px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.sound-orbit {
+  position: relative;
+  display: grid;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 28px;
+  place-items: center;
+}
+
+.sound-core {
+  z-index: 2;
+  display: grid;
+  width: 88px;
+  height: 88px;
+  color: #fff;
+  background: var(--blue);
+  border-radius: 50%;
+  box-shadow: 0 18px 48px rgba(29, 95, 130, 0.25);
+  place-items: center;
+  font-size: 34px;
+}
+
+.sound-orbit i {
+  position: absolute;
+  border: 1px solid rgba(29, 95, 130, 0.22);
+  border-radius: 50%;
+  animation: pulse 2.4s infinite ease-out;
+  inset: 0;
+}
+
+.sound-orbit i:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.sound-orbit i:nth-child(4) {
+  animation-delay: 1.2s;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.54);
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.listening-stage h1 {
+  font-size: clamp(32px, 9vw, 52px);
+}
+
+.listening-stage > p:last-child {
+  margin: 13px 0 0;
+  color: var(--muted);
+}
+
+.dictation-actions {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1.25fr;
+}
+
+.privacy-reminder {
+  margin: 15px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.page-heading {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 36px 0 24px;
+}
+
+.page-heading h1 {
+  font-size: clamp(32px, 8vw, 46px);
+}
+
+.result-hero {
+  display: grid;
+  margin-bottom: 18px;
+  padding: 22px;
+  color: #fff;
+  background: var(--blue-deep);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.result-hero > div {
+  text-align: center;
+}
+
+.result-hero > div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.result-hero span,
+.result-hero strong {
+  display: block;
+}
+
+.result-hero span {
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 11px;
+}
+
+.result-hero strong {
+  margin-top: 7px;
+  font-size: 20px;
+}
+
+.review-toolbar {
+  margin-bottom: 14px;
+}
+
+.review-toolbar p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.answer-list {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-row {
+  display: grid;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 28px rgba(35, 44, 50, 0.06);
+  align-items: center;
+  grid-template-columns: 34px 1fr;
+}
+
+.answer-row.is-unheard {
+  opacity: 0.55;
+}
+
+.answer-number {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.answer-content {
+  min-width: 0;
+}
+
+.answer-wordline {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.answer-wordline strong {
+  color: var(--blue-deep);
+  font-family: Georgia, serif;
+  font-size: 20px;
+}
+
+.answer-wordline span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.answer-meaning {
+  margin: 6px 0 0;
+  line-height: 1.55;
+}
+
+.answer-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.heard-state {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.grade-control {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(3, auto);
+}
+
+.grade-control button {
+  min-height: 34px;
+  padding: 0 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.grade-control button[data-grade="correct"].is-active {
+  color: var(--green);
+  background: var(--green-soft);
+  border-color: rgba(35, 116, 90, 0.28);
+}
+
+.grade-control button[data-grade="wrong"].is-active {
+  color: var(--red);
+  background: var(--red-soft);
+  border-color: rgba(180, 69, 62, 0.28);
+}
+
+.sticky-footer {
+  position: sticky;
+  bottom: calc(82px + var(--safe-bottom));
+  display: flex;
+  margin-top: 20px;
+  padding: 12px;
+  background: rgba(245, 241, 232, 0.86);
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  justify-content: flex-end;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-card {
+  display: grid;
+  gap: 14px;
+  padding: 19px;
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 28px rgba(35, 44, 50, 0.06);
+}
+
+.history-card-top,
+.history-card-bottom {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-card h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.history-card p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.history-score {
+  color: var(--blue);
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.history-card-bottom span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty-state {
+  padding: 56px 22px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.empty-state strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.count-pill {
+  padding: 6px 10px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.file-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.file-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.custom-unit-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.custom-unit-row {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: var(--paper);
+  border-radius: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-unit-row strong,
+.custom-unit-row small {
+  display: block;
+}
+
+.custom-unit-row small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.danger-panel {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(248, 223, 220, 0.55);
+}
+
+.toast {
+  position: fixed;
+  z-index: 100;
+  bottom: calc(94px + var(--safe-bottom));
+  left: 50%;
+  max-width: calc(100% - 36px);
+  padding: 12px 16px;
+  color: #fff;
+  background: rgba(23, 33, 43, 0.94);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 10px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.modal-backdrop {
+  position: fixed;
+  z-index: 90;
+  display: grid;
+  padding: 20px;
+  background: rgba(23, 33, 43, 0.48);
+  backdrop-filter: blur(8px);
+  inset: 0;
+  place-items: center;
+}
+
+.modal-backdrop.is-hidden {
+  display: none;
+}
+
+.confirm-modal {
+  width: min(100%, 440px);
+  padding: 26px;
+  background: var(--paper);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 28px 80px rgba(23, 33, 43, 0.3);
+}
+
+.confirm-modal h2 {
+  margin: 0;
+  font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
+  font-size: 28px;
+}
+
+.confirm-modal > p:not(.eyebrow) {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .hero {
+    padding-top: 38px;
+  }
+
+  .panel,
+  .resume-card,
+  .privacy-strip {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .resume-card,
+  .privacy-strip,
+  .danger-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .resume-card p {
+    margin-left: 0;
+  }
+
+  .unit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .unit-card {
+    min-height: 92px;
+  }
+
+  .setup-actions .button,
+  .button-row .button,
+  .button-row .file-button {
+    width: 100%;
+  }
+
+  .dictation-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .button-large {
+    min-height: 58px;
+  }
+
+  .listening-stage {
+    min-height: calc(100vh - 390px);
+  }
+
+  .review-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .answer-row {
+    grid-template-columns: 28px 1fr;
+  }
+
+  .answer-meta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .grade-control {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grade-control button {
+    padding: 0 6px;
+  }
+
+  .modal-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <button class="brand-button" id="brandHomeButton" type="button" aria-label="返回首页">
+          <span class="brand-mark" aria-hidden="true">Aa</span>
+          <span>
+            <strong>听见单词</strong>
+            <small>七年级英语听写助手</small>
+          </span>
+        </button>
+        <span class="save-indicator" id="saveIndicator">已自动保存</span>
+      </header>
+
+      <main id="appMain">
+        <section class="view is-active" id="homeView" aria-labelledby="homeTitle">
+          <div class="hero">
+            <p class="eyebrow">ENGLISH DICTATION</p>
+            <h1 id="homeTitle">选好范围，把手机交给他。</h1>
+            <p>听写时只播放发音。单词、音标和释义会在结束后统一解锁。</p>
+          </div>
+
+          <section class="resume-card is-hidden" id="resumeCard" aria-live="polite">
+            <div>
+              <span class="status-dot"></span>
+              <strong>有一次听写还没完成</strong>
+              <p id="resumeDescription"></p>
+            </div>
+            <button class="button button-primary button-small" id="resumeButton" type="button">
+              继续听写
+            </button>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="step-label">01</p>
+                <h2>选择听写单元</h2>
+              </div>
+              <div class="inline-actions">
+                <button class="text-button" id="selectAllUnits" type="button">全选</button>
+                <button class="text-button" id="clearUnits" type="button">清空</button>
+              </div>
+            </div>
+            <div class="unit-grid" id="unitGrid"></div>
+            <div class="selection-summary" id="selectionSummary">请选择至少一个单元</div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="step-label">02</p>
+                <h2>设置听写方式</h2>
+              </div>
+            </div>
+
+            <fieldset class="field-group">
+              <legend>单词顺序</legend>
+              <div class="segmented-control">
+                <label>
+                  <input type="radio" name="dictationMode" value="sequence" checked />
+                  <span>按课本顺序</span>
+                </label>
+                <label>
+                  <input type="radio" name="dictationMode" value="random" />
+                  <span>随机打乱</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="settings-grid">
+              <label class="form-field">
+                <span>朗读速度</span>
+                <select id="speechRate">
+                  <option value="0.65">较慢</option>
+                  <option value="0.8" selected>适中</option>
+                  <option value="0.95">正常</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span>每词朗读</span>
+                <select id="repeatCount">
+                  <option value="1" selected>1 次</option>
+                  <option value="2">2 次</option>
+                  <option value="3">3 次</option>
+                </select>
+              </label>
+              <label class="form-field form-field-wide">
+                <span>英语口音与发音</span>
+                <select id="voiceSelect">
+                  <option value="">自动选择（优先英式）</option>
+                  <option value="accent:en-GB">英式英语 · British</option>
+                  <option value="accent:en-US">美式英语 · American</option>
+                  <option value="accent:en-AU">澳式英语 · Australian</option>
+                  <option value="accent:en-CA">加拿大英语 · Canadian</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="notice">
+              <span aria-hidden="true">◎</span>
+              <p>手机版也可以直接选英式、美式等口音；具体音色由手机系统提供。第一次使用前请先点“测试发音”。</p>
+            </div>
+
+            <div class="setup-actions">
+              <button class="button button-secondary" id="testVoiceButton" type="button">
+                测试发音
+              </button>
+              <button class="button button-primary" id="startButton" type="button">
+                开始听写
+              </button>
+            </div>
+          </section>
+
+          <section class="privacy-strip">
+            <div>
+              <strong>记录保存在这台设备</strong>
+              <p>退出、返回或刷新后仍可继续；换手机前请导出备份。</p>
+            </div>
+            <button class="text-button" data-open-view="bank" type="button">备份与词库</button>
+          </section>
+        </section>
+
+        <section class="view dictation-view" id="dictationView" aria-labelledby="dictationTitle">
+          <div class="dictation-topline">
+            <button class="icon-button" id="pauseButton" type="button" aria-label="暂停并返回首页">←</button>
+            <div class="dictation-meta">
+              <span id="dictationUnits">Unit 1</span>
+              <strong id="dictationProgressText">1 / 46</strong>
+            </div>
+            <button class="end-button" id="endButton" type="button">结束</button>
+          </div>
+
+          <div class="progress-track" aria-hidden="true">
+            <span id="dictationProgressBar"></span>
+          </div>
+
+          <div class="listening-stage">
+            <div class="sound-orbit" aria-hidden="true">
+              <span class="sound-core">♪</span>
+              <i></i>
+              <i></i>
+              <i></i>
+            </div>
+            <p class="eyebrow">LISTEN &amp; WRITE</p>
+            <h1 id="dictationTitle">认真听，写在纸上</h1>
+            <p id="speakingStatus">点击下方按钮可以重听当前单词</p>
+          </div>
+
+          <div class="dictation-actions">
+            <button class="button button-secondary button-large" id="replayButton" type="button">
+              <span aria-hidden="true">↻</span>
+              再听一次
+            </button>
+            <button class="button button-primary button-large" id="nextButton" type="button">
+              下一个单词
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <p class="privacy-reminder">当前页面不会显示英文、音标或中文释义</p>
+        </section>
+
+        <section class="view" id="reviewView" aria-labelledby="reviewTitle">
+          <div class="page-heading">
+            <button class="icon-button" data-open-view="home" type="button" aria-label="返回首页">←</button>
+            <div>
+              <p class="eyebrow">REVIEW</p>
+              <h1 id="reviewTitle">本次听写答案</h1>
+            </div>
+          </div>
+
+          <div class="result-hero">
+            <div>
+              <span>本次完成</span>
+              <strong id="reviewCompletedCount">0 / 0</strong>
+            </div>
+            <div>
+              <span>已批改</span>
+              <strong id="reviewGradedCount">0</strong>
+            </div>
+            <div>
+              <span>正确率</span>
+              <strong id="reviewAccuracy">—</strong>
+            </div>
+          </div>
+
+          <div class="review-toolbar">
+            <p id="reviewMeta"></p>
+            <button class="button button-secondary button-small" id="exportReviewButton" type="button">
+              导出本次结果
+            </button>
+          </div>
+
+          <div class="answer-list" id="answerList"></div>
+
+          <div class="sticky-footer">
+            <button class="button button-primary" data-open-view="home" type="button">
+              完成批改，返回首页
+            </button>
+          </div>
+        </section>
+
+        <section class="view" id="historyView" aria-labelledby="historyTitle">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">HISTORY</p>
+              <h1 id="historyTitle">听写记录</h1>
+            </div>
+          </div>
+          <div class="history-list" id="historyList"></div>
+        </section>
+
+        <section class="view" id="bankView" aria-labelledby="bankTitle">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">DATA &amp; WORD BANK</p>
+              <h1 id="bankTitle">备份与词库</h1>
+            </div>
+          </div>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="step-label">A</p>
+                <h2>记录备份</h2>
+              </div>
+            </div>
+            <p class="section-copy">
+              记录默认只在当前浏览器中。导出的备份包含历史、未完成进度、自定义词库和设置。
+            </p>
+            <div class="button-row">
+              <button class="button button-secondary" id="exportBackupButton" type="button">导出完整备份</button>
+              <label class="button button-secondary file-button">
+                导入备份
+                <input id="backupFileInput" type="file" accept=".json,application/json" />
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <div>
+                <p class="step-label">B</p>
+                <h2>扩充单词库</h2>
+              </div>
+              <span class="count-pill" id="bankSummary">8 个单元</span>
+            </div>
+            <p class="section-copy">
+              以后把新单词表交给我，我可以直接更新内置词库。你也可以在这里导入符合模板的 JSON 词库。
+            </p>
+            <div class="button-row">
+              <label class="button button-primary file-button">
+                导入新词库
+                <input id="wordBankFileInput" type="file" accept=".json,application/json" />
+              </label>
+              <button class="button button-secondary" id="downloadTemplateButton" type="button">下载词库模板</button>
+              <button class="button button-secondary" id="exportWordBankButton" type="button">导出当前词库</button>
+            </div>
+            <div class="custom-unit-list" id="customUnitList"></div>
+          </section>
+
+          <section class="panel danger-panel">
+            <div>
+              <h2>清理本机数据</h2>
+              <p>会删除历史记录和未完成进度，内置七年级词库不会受影响。</p>
+            </div>
+            <button class="button button-danger" id="clearDataButton" type="button">清空记录</button>
+          </section>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" id="bottomNav" aria-label="主要导航">
+        <button class="is-active" data-open-view="home" type="button">
+          <span aria-hidden="true">⌂</span>
+          <small>听写</small>
+        </button>
+        <button data-open-view="history" type="button">
+          <span aria-hidden="true">◷</span>
+          <small>记录</small>
+        </button>
+        <button data-open-view="bank" type="button">
+          <span aria-hidden="true">▤</span>
+          <small>词库</small>
+        </button>
+      </nav>
+    </div>
+
+    <div class="modal-backdrop is-hidden" id="finishModal">
+      <section
+        class="confirm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="finishModalTitle"
+        aria-describedby="finishModalDescription"
+      >
+        <p class="eyebrow">END DICTATION</p>
+        <h2 id="finishModalTitle">现在结束听写吗？</h2>
+        <p id="finishModalDescription"></p>
+        <div class="modal-actions">
+          <button class="button button-secondary" id="cancelFinishButton" type="button">继续听写</button>
+          <button class="button button-danger" id="confirmFinishButton" type="button">结束并查看答案</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+window.DEFAULT_WORD_BANK = {
+  "schemaVersion": 1,
+  "source": "人教版新版英语七年级下册单词表",
+  "units": [
+    {
+      "id": "unit-1",
+      "label": "Unit 1",
+      "title": "Animal Friends",
+      "chineseTitle": "动物朋友",
+      "words": [
+        {
+          "id": "unit-1-001",
+          "word": "fox",
+          "speech": "fox",
+          "phonetic": "fɒks",
+          "meaning": "n.狐狸",
+          "sourceText": "fox [fɒks] n.狐狸"
+        },
+        {
+          "id": "unit-1-002",
+          "word": "giraffe",
+          "speech": "giraffe",
+          "phonetic": "dʒəˈrɑːf",
+          "meaning": "n.长颈鹿",
+          "sourceText": "giraffe [dʒəˈrɑːf] n.长颈鹿"
+        },
+        {
+          "id": "unit-1-003",
+          "word": "eagle",
+          "speech": "eagle",
+          "phonetic": "ˈiːɡl",
+          "meaning": "n.雕；鹰",
+          "sourceText": "eagle [ˈiːɡl] n.雕；鹰"
+        },
+        {
+          "id": "unit-1-004",
+          "word": "wolf",
+          "speech": "wolf",
+          "phonetic": "wʊlf；pl. wʊlvz",
+          "meaning": "n.狼",
+          "sourceText": "wolf [wʊlf]（pl. [wʊlvz]）n.狼"
+        },
+        {
+          "id": "unit-1-005",
+          "word": "penguin",
+          "speech": "penguin",
+          "phonetic": "ˈpeŋɡwɪn",
+          "meaning": "n.企鹅",
+          "sourceText": "penguin [ˈpeŋɡwɪn] n.企鹅"
+        },
+        {
+          "id": "unit-1-006",
+          "word": "care",
+          "speech": "care",
+          "phonetic": "keə(r)",
+          "meaning": "n.照顾；护理；v.关心；在乎",
+          "sourceText": "care [keə(r)] n.照顾；护理；v.关心；在乎"
+        },
+        {
+          "id": "unit-1-007",
+          "word": "take care of",
+          "speech": "take care of",
+          "phonetic": "teɪk keə(r) ɒv",
+          "meaning": "照顾；处理",
+          "sourceText": "take care of [teɪk keə(r) ɒv] 照顾；处理"
+        },
+        {
+          "id": "unit-1-008",
+          "word": "sandwich",
+          "speech": "sandwich",
+          "phonetic": "ˈsænwɪtʃ",
+          "meaning": "n.三明治",
+          "sourceText": "sandwich [ˈsænwɪtʃ] n.三明治"
+        },
+        {
+          "id": "unit-1-009",
+          "word": "snake",
+          "speech": "snake",
+          "phonetic": "sneɪk",
+          "meaning": "n.蛇",
+          "sourceText": "snake [sneɪk] n.蛇"
+        },
+        {
+          "id": "unit-1-010",
+          "word": "scary",
+          "speech": "scary",
+          "phonetic": "ˈskeəri",
+          "meaning": "adj.吓人的；恐怖的",
+          "sourceText": "scary [ˈskeəri] adj.吓人的；恐怖的"
+        },
+        {
+          "id": "unit-1-011",
+          "word": "neck",
+          "speech": "neck",
+          "phonetic": "nek",
+          "meaning": "n.脖子",
+          "sourceText": "neck [nek] n.脖子"
+        },
+        {
+          "id": "unit-1-012",
+          "word": "guess",
+          "speech": "guess",
+          "phonetic": "ɡes",
+          "meaning": "v.猜测；估计",
+          "sourceText": "guess [ɡes] v.猜测；估计"
+        },
+        {
+          "id": "unit-1-013",
+          "word": "shark",
+          "speech": "shark",
+          "phonetic": "ʃɑːk",
+          "meaning": "n.鲨鱼",
+          "sourceText": "shark [ʃɑːk] n.鲨鱼"
+        },
+        {
+          "id": "unit-1-014",
+          "word": "whale",
+          "speech": "whale",
+          "phonetic": "weɪl",
+          "meaning": "n.鲸",
+          "sourceText": "whale [weɪl] n.鲸"
+        },
+        {
+          "id": "unit-1-015",
+          "word": "huge",
+          "speech": "huge",
+          "phonetic": "hjuːdʒ",
+          "meaning": "adj.巨大的；极多的",
+          "sourceText": "huge [hjuːdʒ] adj.巨大的；极多的"
+        },
+        {
+          "id": "unit-1-016",
+          "word": "dangerous",
+          "speech": "dangerous",
+          "phonetic": "ˈdeɪndʒərəs",
+          "meaning": "adj.危险的；有危害的",
+          "sourceText": "dangerous [ˈdeɪndʒərəs] adj.危险的；有危害的"
+        },
+        {
+          "id": "unit-1-017",
+          "word": "save",
+          "speech": "save",
+          "phonetic": "seɪv",
+          "meaning": "v.救；储蓄；保存",
+          "sourceText": "save [seɪv] v.救；储蓄；保存"
+        },
+        {
+          "id": "unit-1-018",
+          "word": "luck",
+          "speech": "luck",
+          "phonetic": "lʌk",
+          "meaning": "n.幸运，运气",
+          "sourceText": "luck [lʌk] n.幸运，运气"
+        },
+        {
+          "id": "unit-1-019",
+          "word": "Thai",
+          "speech": "Thai",
+          "phonetic": "taɪ",
+          "meaning": "adj.泰国的；泰国人的；n.泰国人，泰语",
+          "sourceText": "Thai [taɪ] adj.泰国的；泰国人的；n.泰国人，泰语"
+        },
+        {
+          "id": "unit-1-020",
+          "word": "trunk",
+          "speech": "trunk",
+          "phonetic": "trʌŋk",
+          "meaning": "n.象鼻",
+          "sourceText": "trunk [trʌŋk] n.象鼻"
+        },
+        {
+          "id": "unit-1-021",
+          "word": "pick",
+          "speech": "pick",
+          "phonetic": "pɪk",
+          "meaning": "v.捡；摘",
+          "sourceText": "pick [pɪk] v.捡；摘"
+        },
+        {
+          "id": "unit-1-022",
+          "word": "pick up",
+          "speech": "pick up",
+          "phonetic": "pɪk ʌp",
+          "meaning": "拿起；举起",
+          "sourceText": "pick up [pɪk ʌp] 拿起；举起"
+        },
+        {
+          "id": "unit-1-023",
+          "word": "carry",
+          "speech": "carry",
+          "phonetic": "ˈkæri",
+          "meaning": "v.拿；提",
+          "sourceText": "carry [ˈkæri] v.拿；提"
+        },
+        {
+          "id": "unit-1-024",
+          "word": "playful",
+          "speech": "playful",
+          "phonetic": "ˈpleɪfl",
+          "meaning": "adj.爱嬉戏的；爱玩的",
+          "sourceText": "playful [ˈpleɪfl] adj.爱嬉戏的；爱玩的"
+        },
+        {
+          "id": "unit-1-025",
+          "word": "swimmer",
+          "speech": "swimmer",
+          "phonetic": "ˈswɪmə(r)",
+          "meaning": "n.游泳者",
+          "sourceText": "swimmer [ˈswɪmə(r)] n.游泳者"
+        },
+        {
+          "id": "unit-1-026",
+          "word": "one another",
+          "speech": "one another",
+          "phonetic": "ˌwʌn əˈnʌðə(r)",
+          "meaning": "互相",
+          "sourceText": "one another [ˌwʌn əˈnʌðə(r)] 互相"
+        },
+        {
+          "id": "unit-1-027",
+          "word": "look after",
+          "speech": "look after",
+          "phonetic": "lʊk ˈɑːftə(r)",
+          "meaning": "照顾",
+          "sourceText": "look after [lʊk ˈɑːftə(r)] 照顾"
+        },
+        {
+          "id": "unit-1-028",
+          "word": "culture",
+          "speech": "culture",
+          "phonetic": "ˈkʌltʃə(r)",
+          "meaning": "n.文化；文明",
+          "sourceText": "culture [ˈkʌltʃə(r)] n.文化；文明"
+        },
+        {
+          "id": "unit-1-029",
+          "word": "however",
+          "speech": "however",
+          "phonetic": "haʊˈevə(r)",
+          "meaning": "adv.然而；不过",
+          "sourceText": "however [haʊˈevə(r)] adv.然而；不过"
+        },
+        {
+          "id": "unit-1-030",
+          "word": "danger",
+          "speech": "danger",
+          "phonetic": "ˈdeɪndʒə(r)",
+          "meaning": "n.危险",
+          "sourceText": "danger [ˈdeɪndʒə(r)] n.危险"
+        },
+        {
+          "id": "unit-1-031",
+          "word": "in danger",
+          "speech": "in danger",
+          "phonetic": "ɪn ˈdeɪndʒə(r)",
+          "meaning": "处于危险之中",
+          "sourceText": "in danger [ɪn ˈdeɪndʒə(r)] 处于危险之中"
+        },
+        {
+          "id": "unit-1-032",
+          "word": "forest",
+          "speech": "forest",
+          "phonetic": "ˈfɒrɪst",
+          "meaning": "n.森林",
+          "sourceText": "forest [ˈfɒrɪst] n.森林"
+        },
+        {
+          "id": "unit-1-033",
+          "word": "cut down",
+          "speech": "cut down",
+          "phonetic": "kʌt daʊn",
+          "meaning": "砍伐；砍倒",
+          "sourceText": "cut down [kʌt daʊn] 砍伐；砍倒"
+        },
+        {
+          "id": "unit-1-034",
+          "word": "too many",
+          "speech": "too many",
+          "phonetic": "tuː ˈmeni",
+          "meaning": "太多",
+          "sourceText": "too many [tuː ˈmeni] 太多"
+        },
+        {
+          "id": "unit-1-035",
+          "word": "kill",
+          "speech": "kill",
+          "phonetic": "kɪl",
+          "meaning": "v.杀死；弄死",
+          "sourceText": "kill [kɪl] v.杀死；弄死"
+        },
+        {
+          "id": "unit-1-036",
+          "word": "made of",
+          "speech": "made of",
+          "phonetic": "meɪd ɒv",
+          "meaning": "由……制成的",
+          "sourceText": "made of [meɪd ɒv] 由……制成的"
+        },
+        {
+          "id": "unit-1-037",
+          "word": "ivory",
+          "speech": "ivory",
+          "phonetic": "ˈaɪvəri",
+          "meaning": "n.象牙",
+          "sourceText": "ivory [ˈaɪvəri] n.象牙"
+        },
+        {
+          "id": "unit-1-038",
+          "word": "friendly",
+          "speech": "friendly",
+          "phonetic": "ˈfrendli",
+          "meaning": "adj.友好的",
+          "sourceText": "friendly [ˈfrendli] adj.友好的"
+        },
+        {
+          "id": "unit-1-039",
+          "word": "quite",
+          "speech": "quite",
+          "phonetic": "kwaɪt",
+          "meaning": "adv.相当；完全",
+          "sourceText": "quite [kwaɪt] adv.相当；完全"
+        },
+        {
+          "id": "unit-1-040",
+          "word": "quite a",
+          "speech": "quite a",
+          "phonetic": "kwaɪt ə",
+          "meaning": "相当；非常",
+          "sourceText": "quite a [kwaɪt ə] 相当；非常"
+        },
+        {
+          "id": "unit-1-041",
+          "word": "not…at all",
+          "speech": "not at all",
+          "phonetic": "nɒt … æt ɔːl",
+          "meaning": "一点也不",
+          "sourceText": "not…at all [nɒt … æt ɔːl] 一点也不"
+        },
+        {
+          "id": "unit-1-042",
+          "word": "fur",
+          "speech": "fur",
+          "phonetic": "fɜː(r)",
+          "meaning": "n.（动物）厚软毛",
+          "sourceText": "fur [fɜː(r)] n.（动物）厚软毛"
+        },
+        {
+          "id": "unit-1-043",
+          "word": "blind",
+          "speech": "blind",
+          "phonetic": "blaɪnd",
+          "meaning": "adj.瞎的；失明的",
+          "sourceText": "blind [blaɪnd] adj.瞎的；失明的"
+        },
+        {
+          "id": "unit-1-044",
+          "word": "hearing",
+          "speech": "hearing",
+          "phonetic": "ˈhɪərɪŋ",
+          "meaning": "n.听力；听觉",
+          "sourceText": "hearing [ˈhɪərɪŋ] n.听力；听觉"
+        },
+        {
+          "id": "unit-1-045",
+          "word": "Antarctica",
+          "speech": "Antarctica",
+          "phonetic": "ænˈtɑːktɪkə",
+          "meaning": "南极洲",
+          "sourceText": "Antarctica [ænˈtɑːktɪkə] 南极洲"
+        },
+        {
+          "id": "unit-1-046",
+          "word": "Africa",
+          "speech": "Africa",
+          "phonetic": "ˈæfrɪkə",
+          "meaning": "非洲",
+          "sourceText": "Africa [ˈæfrɪkə] 非洲"
+        }
+      ]
+    },
+    {
+      "id": "unit-2",
+      "label": "Unit 2",
+      "title": "No Rules, No Order",
+      "chineseTitle": "规则与秩序",
+      "words": [
+        {
+          "id": "unit-2-001",
+          "word": "rule",
+          "speech": "rule",
+          "phonetic": "ruːl",
+          "meaning": "n.规则；规章",
+          "sourceText": "rule [ruːl] n.规则；规章"
+        },
+        {
+          "id": "unit-2-002",
+          "word": "order",
+          "speech": "order",
+          "phonetic": "ˈɔːdə(r)",
+          "meaning": "n.秩序；v.点菜",
+          "sourceText": "order [ˈɔːdə(r)] n.秩序；v.点菜"
+        },
+        {
+          "id": "unit-2-003",
+          "word": "follow",
+          "speech": "follow",
+          "phonetic": "ˈfɒləʊ",
+          "meaning": "v.遵循；跟随",
+          "sourceText": "follow [ˈfɒləʊ] v.遵循；跟随"
+        },
+        {
+          "id": "unit-2-004",
+          "word": "be late (for)",
+          "speech": "be late (for)",
+          "phonetic": "biː leɪt (fɔː(r))",
+          "meaning": "迟到",
+          "sourceText": "be late (for) [biː leɪt (fɔː(r))] 迟到"
+        },
+        {
+          "id": "unit-2-005",
+          "word": "arrive",
+          "speech": "arrive",
+          "phonetic": "əˈraɪv",
+          "meaning": "v.到达",
+          "sourceText": "arrive [əˈraɪv] v.到达"
+        },
+        {
+          "id": "unit-2-006",
+          "word": "on time",
+          "speech": "on time",
+          "phonetic": "ɒn taɪm",
+          "meaning": "准时",
+          "sourceText": "on time [ɒn taɪm] 准时"
+        },
+        {
+          "id": "unit-2-007",
+          "word": "hallway",
+          "speech": "hallway",
+          "phonetic": "ˈhɔːlweɪ",
+          "meaning": "n.走廊",
+          "sourceText": "hallway [ˈhɔːlweɪ] n.走廊"
+        },
+        {
+          "id": "unit-2-008",
+          "word": "uniform",
+          "speech": "uniform",
+          "phonetic": "ˈjuːnɪfɔːm",
+          "meaning": "n.校服；制服",
+          "sourceText": "uniform [ˈjuːnɪfɔːm] n.校服；制服"
+        },
+        {
+          "id": "unit-2-009",
+          "word": "litter",
+          "speech": "litter",
+          "phonetic": "ˈlɪtə(r)",
+          "meaning": "v.乱扔；n.垃圾",
+          "sourceText": "litter [ˈlɪtə(r)] v.乱扔；n.垃圾"
+        },
+        {
+          "id": "unit-2-010",
+          "word": "polite",
+          "speech": "polite",
+          "phonetic": "pəˈlaɪt",
+          "meaning": "adj.有礼貌的",
+          "sourceText": "polite [pəˈlaɪt] adj.有礼貌的"
+        },
+        {
+          "id": "unit-2-011",
+          "word": "treat",
+          "speech": "treat",
+          "phonetic": "triːt",
+          "meaning": "v.对待；招待；治疗",
+          "sourceText": "treat [triːt] v.对待；招待；治疗"
+        },
+        {
+          "id": "unit-2-012",
+          "word": "respect",
+          "speech": "respect",
+          "phonetic": "rɪˈspekt",
+          "meaning": "n.&v.尊敬",
+          "sourceText": "respect [rɪˈspekt] n.&v.尊敬"
+        },
+        {
+          "id": "unit-2-013",
+          "word": "if",
+          "speech": "if",
+          "phonetic": "ɪf",
+          "meaning": "conj.如果",
+          "sourceText": "if [ɪf] conj.如果"
+        },
+        {
+          "id": "unit-2-014",
+          "word": "jacket",
+          "speech": "jacket",
+          "phonetic": "ˈdʒækɪt",
+          "meaning": "n.夹克衫；短上衣",
+          "sourceText": "jacket [ˈdʒækɪt] n.夹克衫；短上衣"
+        },
+        {
+          "id": "unit-2-015",
+          "word": "have to",
+          "speech": "have to",
+          "phonetic": "ˈhæv tə",
+          "meaning": "不得不",
+          "sourceText": "have to [ˈhæv tə] 不得不"
+        },
+        {
+          "id": "unit-2-016",
+          "word": "everything",
+          "speech": "everything",
+          "phonetic": "ˈevriθɪŋ",
+          "meaning": "pron.每件事",
+          "sourceText": "everything [ˈevriθɪŋ] pron.每件事"
+        },
+        {
+          "id": "unit-2-017",
+          "word": "lend",
+          "speech": "lend",
+          "phonetic": "lend",
+          "meaning": "v.借给；借出",
+          "sourceText": "lend [lend] v.借给；借出"
+        },
+        {
+          "id": "unit-2-018",
+          "word": "sweet",
+          "speech": "sweet",
+          "phonetic": "swiːt",
+          "meaning": "n.糖果；adj.甜的",
+          "sourceText": "sweet [swiːt] n.糖果；adj.甜的"
+        },
+        {
+          "id": "unit-2-019",
+          "word": "snack",
+          "speech": "snack",
+          "phonetic": "snæk",
+          "meaning": "n.点心；小吃",
+          "sourceText": "snack [snæk] n.点心；小吃"
+        },
+        {
+          "id": "unit-2-020",
+          "word": "of course",
+          "speech": "of course",
+          "phonetic": "əv kɔːs",
+          "meaning": "当然",
+          "sourceText": "of course [əv kɔːs] 当然"
+        },
+        {
+          "id": "unit-2-021",
+          "word": "mobile",
+          "speech": "mobile",
+          "phonetic": "ˈməʊbaɪl",
+          "meaning": "adj.可移动的",
+          "sourceText": "mobile [ˈməʊbaɪl] adj.可移动的"
+        },
+        {
+          "id": "unit-2-022",
+          "word": "mobile phone",
+          "speech": "mobile phone",
+          "phonetic": "ˈməʊbaɪl fəʊn",
+          "meaning": "手机",
+          "sourceText": "mobile phone [ˈməʊbaɪl fəʊn] 手机"
+        },
+        {
+          "id": "unit-2-023",
+          "word": "turn off",
+          "speech": "turn off",
+          "phonetic": "tɜːn ɒf",
+          "meaning": "关掉(水、电或煤气)",
+          "sourceText": "turn off [tɜːn ɒf] 关掉(水、电或煤气)"
+        },
+        {
+          "id": "unit-2-024",
+          "word": "queue",
+          "speech": "queue",
+          "phonetic": "kjuː",
+          "meaning": "n.队；行列",
+          "sourceText": "queue [kjuː] n.队；行列"
+        },
+        {
+          "id": "unit-2-025",
+          "word": "jump the queue",
+          "speech": "jump the queue",
+          "phonetic": "dʒʌmp ðə kjuː",
+          "meaning": "插队",
+          "sourceText": "jump the queue [dʒʌmp ðə kjuː] 插队"
+        },
+        {
+          "id": "unit-2-026",
+          "word": "wait for",
+          "speech": "wait for",
+          "phonetic": "weɪt fɔː(r)",
+          "meaning": "等待",
+          "sourceText": "wait for [weɪt fɔː(r)] 等待"
+        },
+        {
+          "id": "unit-2-027",
+          "word": "just",
+          "speech": "just",
+          "phonetic": "dʒʌst",
+          "meaning": "adv.只是；正好",
+          "sourceText": "just [dʒʌst] adv.只是；正好"
+        },
+        {
+          "id": "unit-2-028",
+          "word": "leave",
+          "speech": "leave",
+          "phonetic": "liːv",
+          "meaning": "v.离开；留下",
+          "sourceText": "leave [liːv] v.离开；留下"
+        },
+        {
+          "id": "unit-2-029",
+          "word": "absent",
+          "speech": "absent",
+          "phonetic": "ˈæbsənt",
+          "meaning": "adj.缺席的；不在的",
+          "sourceText": "absent [ˈæbsənt] adj.缺席的；不在的"
+        },
+        {
+          "id": "unit-2-030",
+          "word": "be absent from",
+          "speech": "be absent from",
+          "phonetic": "biː ˈæbsənt frəm",
+          "meaning": "缺席；不在",
+          "sourceText": "be absent from [biː ˈæbsənt frəm] 缺席；不在"
+        },
+        {
+          "id": "unit-2-031",
+          "word": "shh",
+          "speech": "shh",
+          "phonetic": "ʃ",
+          "meaning": "interj.嘘(用以让别人安静下来)",
+          "sourceText": "shh [ʃ] interj.嘘(用以让别人安静下来)"
+        },
+        {
+          "id": "unit-2-032",
+          "word": "quietly",
+          "speech": "quietly",
+          "phonetic": "ˈkwaɪətli",
+          "meaning": "adv.轻声地；安静地",
+          "sourceText": "quietly [ˈkwaɪətli] adv.轻声地；安静地"
+        },
+        {
+          "id": "unit-2-033",
+          "word": "belt",
+          "speech": "belt",
+          "phonetic": "belt",
+          "meaning": "n.安全带；腰带；皮带",
+          "sourceText": "belt [belt] n.安全带；腰带；皮带"
+        },
+        {
+          "id": "unit-2-034",
+          "word": "feed",
+          "speech": "feed",
+          "phonetic": "fiːd",
+          "meaning": "v.喂养；饲养",
+          "sourceText": "feed [fiːd] v.喂养；饲养"
+        },
+        {
+          "id": "unit-2-035",
+          "word": "noise",
+          "speech": "noise",
+          "phonetic": "nɔɪz",
+          "meaning": "n.声音；噪声",
+          "sourceText": "noise [nɔɪz] n.声音；噪声"
+        },
+        {
+          "id": "unit-2-036",
+          "word": "unhappy",
+          "speech": "unhappy",
+          "phonetic": "ʌnˈhæpi",
+          "meaning": "adj.不快乐的",
+          "sourceText": "unhappy [ʌnˈhæpi] adj.不快乐的"
+        },
+        {
+          "id": "unit-2-037",
+          "word": "Dr(= doctor)",
+          "speech": "doctor",
+          "phonetic": "ˈdɒktə(r)",
+          "meaning": "n.博士；医生",
+          "sourceText": "Dr(= doctor) [ˈdɒktə(r)] n.博士；医生"
+        },
+        {
+          "id": "unit-2-038",
+          "word": "make sb's",
+          "speech": "make somebody's",
+          "phonetic": "the bed [meɪk ˈsʌmbədiz",
+          "meaning": "ðə bed] 整理床铺；铺床",
+          "sourceText": "make sb's/the bed [meɪk ˈsʌmbədiz/ðə bed] 整理床铺；铺床"
+        },
+        {
+          "id": "unit-2-039",
+          "word": "either",
+          "speech": "either",
+          "phonetic": "ˈaɪðə(r); ˈiːðə(r)",
+          "meaning": "adv.也(用于否定词组后)",
+          "sourceText": "either [ˈaɪðə(r); ˈiːðə(r)] adv.也(用于否定词组后)"
+        },
+        {
+          "id": "unit-2-040",
+          "word": "practise",
+          "speech": "practise",
+          "phonetic": "ˈpræktɪs",
+          "meaning": "v.训练；练习",
+          "sourceText": "practise [ˈpræktɪs] v.训练；练习"
+        },
+        {
+          "id": "unit-2-041",
+          "word": "hang",
+          "speech": "hang",
+          "phonetic": "hæŋ",
+          "meaning": "v.悬挂",
+          "sourceText": "hang [hæŋ] v.悬挂"
+        },
+        {
+          "id": "unit-2-042",
+          "word": "hang out",
+          "speech": "hang out",
+          "phonetic": "hæŋ aʊt",
+          "meaning": "闲逛；常去某处",
+          "sourceText": "hang out [hæŋ aʊt] 闲逛；常去某处"
+        },
+        {
+          "id": "unit-2-043",
+          "word": "weekday",
+          "speech": "weekday",
+          "phonetic": "ˈwiːkdeɪ",
+          "meaning": "n.工作日(星期一至星期五的任何一天)",
+          "sourceText": "weekday [ˈwiːkdeɪ] n.工作日(星期一至星期五的任何一天)"
+        },
+        {
+          "id": "unit-2-044",
+          "word": "awful",
+          "speech": "awful",
+          "phonetic": "ˈɔːfl",
+          "meaning": "adj.糟糕的",
+          "sourceText": "awful [ˈɔːfl] adj.糟糕的"
+        },
+        {
+          "id": "unit-2-045",
+          "word": "become",
+          "speech": "become",
+          "phonetic": "bɪˈkʌm",
+          "meaning": "v.成为",
+          "sourceText": "become [bɪˈkʌm] v.成为"
+        },
+        {
+          "id": "unit-2-046",
+          "word": "better",
+          "speech": "better",
+          "phonetic": "ˈbetə(r)",
+          "meaning": "adj.较好；adv.较好地",
+          "sourceText": "better [ˈbetə(r)] adj.较好；adv.较好地"
+        },
+        {
+          "id": "unit-2-047",
+          "word": "person",
+          "speech": "person",
+          "phonetic": "ˈpɜːsn",
+          "meaning": "n.人",
+          "sourceText": "person [ˈpɜːsn] n.人"
+        },
+        {
+          "id": "unit-2-048",
+          "word": "focus",
+          "speech": "focus",
+          "phonetic": "ˈfəʊkəs",
+          "meaning": "v.集中(注意力、精力等)；n.焦点",
+          "sourceText": "focus [ˈfəʊkəs] v.集中(注意力、精力等)；n.焦点"
+        },
+        {
+          "id": "unit-2-049",
+          "word": "focus on",
+          "speech": "focus on",
+          "phonetic": "ˈfəʊkəs ɒn",
+          "meaning": "集中(注意力、精力等)于",
+          "sourceText": "focus on [ˈfəʊkəs ɒn] 集中(注意力、精力等)于"
+        },
+        {
+          "id": "unit-2-050",
+          "word": "build",
+          "speech": "build",
+          "phonetic": "bɪld",
+          "meaning": "v.创建；建造",
+          "sourceText": "build [bɪld] v.创建；建造"
+        },
+        {
+          "id": "unit-2-051",
+          "word": "spirit",
+          "speech": "spirit",
+          "phonetic": "ˈspɪrɪt",
+          "meaning": "n.精神；情绪",
+          "sourceText": "spirit [ˈspɪrɪt] n.精神；情绪"
+        },
+        {
+          "id": "unit-2-052",
+          "word": "think about",
+          "speech": "think about",
+          "phonetic": "θɪŋk əˈbaʊt",
+          "meaning": "思考",
+          "sourceText": "think about [θɪŋk əˈbaʊt] 思考"
+        },
+        {
+          "id": "unit-2-053",
+          "word": "relax",
+          "speech": "relax",
+          "phonetic": "rɪˈlæks",
+          "meaning": "v.放松；休息",
+          "sourceText": "relax [rɪˈlæks] v.放松；休息"
+        },
+        {
+          "id": "unit-2-054",
+          "word": "advice",
+          "speech": "advice",
+          "phonetic": "ədˈvaɪs",
+          "meaning": "n.建议；意见",
+          "sourceText": "advice [ədˈvaɪs] n.建议；意见"
+        },
+        {
+          "id": "unit-2-055",
+          "word": "understand",
+          "speech": "understand",
+          "phonetic": "ˌʌndəˈstænd",
+          "meaning": "v.理解；领会",
+          "sourceText": "understand [ˌʌndəˈstænd] v.理解；领会"
+        },
+        {
+          "id": "unit-2-056",
+          "word": "untidy",
+          "speech": "untidy",
+          "phonetic": "ʌnˈtaɪdi",
+          "meaning": "adj.不整洁的",
+          "sourceText": "untidy [ʌnˈtaɪdi] adj.不整洁的"
+        }
+      ]
+    },
+    {
+      "id": "unit-3",
+      "label": "Unit 3",
+      "title": "Keep Fit",
+      "chineseTitle": "保持健康",
+      "words": [
+        {
+          "id": "unit-3-001",
+          "word": "fit",
+          "speech": "fit",
+          "phonetic": "fit",
+          "meaning": "adj.健康的；健壮的v.适合",
+          "sourceText": "fit /fit/ adj.健康的；健壮的v.适合"
+        },
+        {
+          "id": "unit-3-002",
+          "word": "baseball",
+          "speech": "baseball",
+          "phonetic": "ˈbeɪsbɔːl",
+          "meaning": "n.棒球(运动)",
+          "sourceText": "baseball [ˈbeɪsbɔːl] n.棒球(运动)"
+        },
+        {
+          "id": "unit-3-003",
+          "word": "glove",
+          "speech": "glove",
+          "phonetic": "ɡlʌv",
+          "meaning": "n.(手指分开的)手套",
+          "sourceText": "glove [ɡlʌv] n.(手指分开的)手套"
+        },
+        {
+          "id": "unit-3-004",
+          "word": "mat",
+          "speech": "mat",
+          "phonetic": "mæt",
+          "meaning": "n.(运动用的)垫子",
+          "sourceText": "mat [mæt] n.(运动用的)垫子"
+        },
+        {
+          "id": "unit-3-005",
+          "word": "rope",
+          "speech": "rope",
+          "phonetic": "rəʊp",
+          "meaning": "n.绳子；粗绳",
+          "sourceText": "rope [rəʊp] n.绳子；粗绳"
+        },
+        {
+          "id": "unit-3-006",
+          "word": "jump rope",
+          "speech": "jump rope",
+          "phonetic": "dʒʌmp rəʊp",
+          "meaning": "跳绳用的绳子；跳绳(运动)",
+          "sourceText": "jump rope [dʒʌmp rəʊp] 跳绳用的绳子；跳绳(运动)"
+        },
+        {
+          "id": "unit-3-007",
+          "word": "racket",
+          "speech": "racket",
+          "phonetic": "ˈrækɪt",
+          "meaning": "n.(网球、羽毛球等的)球拍",
+          "sourceText": "racket [ˈrækɪt] n.(网球、羽毛球等的)球拍"
+        },
+        {
+          "id": "unit-3-008",
+          "word": "hardly",
+          "speech": "hardly",
+          "phonetic": "ˈhɑːdli",
+          "meaning": "adv.几乎不；几乎没有",
+          "sourceText": "hardly [ˈhɑːdli] adv.几乎不；几乎没有"
+        },
+        {
+          "id": "unit-3-009",
+          "word": "ever",
+          "speech": "ever",
+          "phonetic": "ˈevə(r)",
+          "meaning": "adv.在任何时候；从来；曾经",
+          "sourceText": "ever [ˈevə(r)] adv.在任何时候；从来；曾经"
+        },
+        {
+          "id": "unit-3-010",
+          "word": "hardly ever",
+          "speech": "hardly ever",
+          "phonetic": "",
+          "meaning": "几乎从不",
+          "sourceText": "hardly ever几乎从不"
+        },
+        {
+          "id": "unit-3-011",
+          "word": "once",
+          "speech": "once",
+          "phonetic": "wʌns",
+          "meaning": "adv.一次；曾经",
+          "sourceText": "once [wʌns] adv.一次；曾经"
+        },
+        {
+          "id": "unit-3-012",
+          "word": "twice",
+          "speech": "twice",
+          "phonetic": "twaɪs",
+          "meaning": "adv.两次；两倍",
+          "sourceText": "twice [twaɪs] adv.两次；两倍"
+        },
+        {
+          "id": "unit-3-013",
+          "word": "mine",
+          "speech": "mine",
+          "phonetic": "maɪn",
+          "meaning": "pron.我的(所有物)",
+          "sourceText": "mine [maɪn] pron.我的(所有物)"
+        },
+        {
+          "id": "unit-3-014",
+          "word": "hers",
+          "speech": "hers",
+          "phonetic": "hɜːz",
+          "meaning": "pron.她的(所有物)",
+          "sourceText": "hers [hɜːz] pron.她的(所有物)"
+        },
+        {
+          "id": "unit-3-015",
+          "word": "maybe",
+          "speech": "maybe",
+          "phonetic": "ˈmeɪbi",
+          "meaning": "adv.也许；大概",
+          "sourceText": "maybe [ˈmeɪbi] adv.也许；大概"
+        },
+        {
+          "id": "unit-3-016",
+          "word": "well-used",
+          "speech": "well-used",
+          "phonetic": ",wel ju:zd",
+          "meaning": "adj.使用得多的",
+          "sourceText": "well-used /,wel ju:zd/adj.使用得多的"
+        },
+        {
+          "id": "unit-3-017",
+          "word": "practice",
+          "speech": "practice",
+          "phonetic": "ˈpræktɪs",
+          "meaning": "n.练习；实践",
+          "sourceText": "practice [ˈpræktɪs] n.练习；实践"
+        },
+        {
+          "id": "unit-3-018",
+          "word": "perfect",
+          "speech": "perfect",
+          "phonetic": "ˈpɜːfɪkt",
+          "meaning": "adj.完美的；极好的",
+          "sourceText": "perfect [ˈpɜːfɪkt] adj.完美的；极好的"
+        },
+        {
+          "id": "unit-3-019",
+          "word": "seldom",
+          "speech": "seldom",
+          "phonetic": "ˈseldəm",
+          "meaning": "adv.很少；不常",
+          "sourceText": "seldom [ˈseldəm] adv.很少；不常"
+        },
+        {
+          "id": "unit-3-020",
+          "word": "badminton",
+          "speech": "badminton",
+          "phonetic": "ˈbædmɪntən",
+          "meaning": "n.羽毛球运动",
+          "sourceText": "badminton [ˈbædmɪntən] n.羽毛球运动"
+        },
+        {
+          "id": "unit-3-021",
+          "word": "double",
+          "speech": "double",
+          "phonetic": "ˈdʌbl",
+          "meaning": "n.双打；两倍；adj.成双的；两倍的",
+          "sourceText": "double [ˈdʌbl] n.双打；两倍；adj.成双的；两倍的"
+        },
+        {
+          "id": "unit-3-022",
+          "word": "sometime",
+          "speech": "sometime",
+          "phonetic": "ˈsʌmtaɪm",
+          "meaning": "adv. 在某个时候",
+          "sourceText": "sometime [ˈsʌmtaɪm] adv. 在某个时候"
+        },
+        {
+          "id": "unit-3-023",
+          "word": "volleyball",
+          "speech": "volleyball",
+          "phonetic": "ˈvɒlibɔːl",
+          "meaning": "n.排球(运动)",
+          "sourceText": "volleyball [ˈvɒlibɔːl] n.排球(运动)"
+        },
+        {
+          "id": "unit-3-024",
+          "word": "theirs",
+          "speech": "theirs",
+          "phonetic": "ðeəs",
+          "meaning": "pron. 他们的，她们的，它们的（所有物）",
+          "sourceText": "theirs [ðeəs] pron. 他们的，她们的，它们的（所有物）"
+        },
+        {
+          "id": "unit-3-025",
+          "word": "jog",
+          "speech": "jog",
+          "phonetic": "dʒɒɡ",
+          "meaning": "v.慢跑",
+          "sourceText": "jog [dʒɒɡ] v.慢跑"
+        },
+        {
+          "id": "unit-3-026",
+          "word": "few",
+          "speech": "few",
+          "phonetic": "fjuː",
+          "meaning": "adj.(表示否定的)很少的；几乎没有的",
+          "sourceText": "few [fjuː] adj.(表示否定的)很少的；几乎没有的"
+        },
+        {
+          "id": "unit-3-027",
+          "word": "a few",
+          "speech": "a few",
+          "phonetic": "ə fjuː",
+          "meaning": "少数；几个",
+          "sourceText": "a few [ə fjuː] 少数；几个"
+        },
+        {
+          "id": "unit-3-028",
+          "word": "excuse",
+          "speech": "excuse",
+          "phonetic": "ɪkˈskjuːz",
+          "meaning": "v.原谅；宽恕",
+          "sourceText": "excuse [ɪkˈskjuːz] v.原谅；宽恕"
+        },
+        {
+          "id": "unit-3-029",
+          "word": "excuse me",
+          "speech": "excuse me",
+          "phonetic": "ɪkˈskjuːz miː",
+          "meaning": "劳驾；请原谅",
+          "sourceText": "excuse me [ɪkˈskjuːz miː] 劳驾；请原谅"
+        },
+        {
+          "id": "unit-3-030",
+          "word": "over there",
+          "speech": "over there",
+          "phonetic": "ˈəʊvə(r) ðeə(r)",
+          "meaning": "在那边",
+          "sourceText": "over there [ˈəʊvə(r) ðeə(r)] 在那边"
+        },
+        {
+          "id": "unit-3-031",
+          "word": "T-shirt",
+          "speech": "T-shirt",
+          "phonetic": "ˈtiː ʃɜːt",
+          "meaning": "n. T 恤衫",
+          "sourceText": "T-shirt [ˈtiː ʃɜːt] n. T 恤衫"
+        },
+        {
+          "id": "unit-3-032",
+          "word": "belong",
+          "speech": "belong",
+          "phonetic": "bɪˈlɒŋ",
+          "meaning": "v.应在(某处)；",
+          "sourceText": "belong [bɪˈlɒŋ] v.应在(某处)；"
+        },
+        {
+          "id": "unit-3-033",
+          "word": "belong to",
+          "speech": "belong to",
+          "phonetic": "bɪˈlɒŋ tuː",
+          "meaning": "属于(某人)",
+          "sourceText": "belong to [bɪˈlɒŋ tuː] 属于(某人)"
+        },
+        {
+          "id": "unit-3-034",
+          "word": "at the start",
+          "speech": "at the start",
+          "phonetic": "æt ðə stɑːt",
+          "meaning": "开始；起初",
+          "sourceText": "at the start [æt ðə stɑːt] 开始；起初"
+        },
+        {
+          "id": "unit-3-035",
+          "word": "still",
+          "speech": "still",
+          "phonetic": "stɪl",
+          "meaning": "adv.还；仍然",
+          "sourceText": "still [stɪl] adv.还；仍然"
+        },
+        {
+          "id": "unit-3-036",
+          "word": "sleepy",
+          "speech": "sleepy",
+          "phonetic": "ˈsliːpi",
+          "meaning": "adj.困倦的；想睡的",
+          "sourceText": "sleepy [ˈsliːpi] adj.困倦的；想睡的"
+        },
+        {
+          "id": "unit-3-037",
+          "word": "instead",
+          "speech": "instead",
+          "phonetic": "ɪnˈsted",
+          "meaning": "adv.代替",
+          "sourceText": "instead [ɪnˈsted] adv.代替"
+        },
+        {
+          "id": "unit-3-038",
+          "word": "group",
+          "speech": "group",
+          "phonetic": "ɡruːp",
+          "meaning": "n.组；群",
+          "sourceText": "group [ɡruːp] n.组；群"
+        },
+        {
+          "id": "unit-3-039",
+          "word": "skateboard",
+          "speech": "skateboard",
+          "phonetic": "ˈskeɪtbɔːd",
+          "meaning": "n.滑板",
+          "sourceText": "skateboard [ˈskeɪtbɔːd] n.滑板"
+        },
+        {
+          "id": "unit-3-040",
+          "word": "encourage",
+          "speech": "encourage",
+          "phonetic": "ɪnˈkʌrɪdʒ",
+          "meaning": "v.鼓励；激励",
+          "sourceText": "encourage [ɪnˈkʌrɪdʒ] v.鼓励；激励"
+        },
+        {
+          "id": "unit-3-041",
+          "word": "trick",
+          "speech": "trick",
+          "phonetic": "",
+          "meaning": "n. 技巧；戏法",
+          "sourceText": "trick n.技巧，戏法"
+        },
+        {
+          "id": "unit-3-042",
+          "word": "succeed",
+          "speech": "succeed",
+          "phonetic": "sak'si:d",
+          "meaning": "V.成功；达到目标",
+          "sourceText": "succeed /sak'si:d/V.成功；达到目标"
+        },
+        {
+          "id": "unit-3-043",
+          "word": "skateboarding",
+          "speech": "skateboarding",
+          "phonetic": "'skentbə:dın",
+          "meaning": "n.滑板运动",
+          "sourceText": "skateboarding /'skentbə:dın/ n.滑板运动"
+        },
+        {
+          "id": "unit-3-044",
+          "word": "goal",
+          "speech": "goal",
+          "phonetic": "ɡəʊl",
+          "meaning": "n.目标；目的",
+          "sourceText": "goal [ɡəʊl] n.目标；目的"
+        },
+        {
+          "id": "unit-3-045",
+          "word": "sit-up",
+          "speech": "sit-up",
+          "phonetic": "ˈsɪt ʌp",
+          "meaning": "n.仰卧起坐",
+          "sourceText": "sit-up [ˈsɪt ʌp] n.仰卧起坐"
+        },
+        {
+          "id": "unit-3-046",
+          "word": "work out",
+          "speech": "work out",
+          "phonetic": "wɜːk aʊt",
+          "meaning": "锻炼",
+          "sourceText": "work out [wɜːk aʊt] 锻炼"
+        },
+        {
+          "id": "unit-3-047",
+          "word": "app",
+          "speech": "app",
+          "phonetic": "æp",
+          "meaning": "(=application [ˌæplɪˈkeɪʃn]) n.应用程序",
+          "sourceText": "app [æp](=application [ˌæplɪˈkeɪʃn]) n.应用程序"
+        },
+        {
+          "id": "unit-3-048",
+          "word": "progress",
+          "speech": "progress",
+          "phonetic": "ˈprəʊɡres",
+          "meaning": "n.进步；进展",
+          "sourceText": "progress [ˈprəʊɡres] n.进步；进展"
+        },
+        {
+          "id": "unit-3-049",
+          "word": "match",
+          "speech": "match",
+          "phonetic": "mætʃ",
+          "meaning": "n.比赛；竞赛",
+          "sourceText": "match [mætʃ] n.比赛；竞赛"
+        },
+        {
+          "id": "unit-3-050",
+          "word": "team",
+          "speech": "team",
+          "phonetic": "tiːm",
+          "meaning": "n.队；组",
+          "sourceText": "team [tiːm] n.队；组"
+        },
+        {
+          "id": "unit-3-051",
+          "word": "ours",
+          "speech": "ours",
+          "phonetic": "ˈaʊəz",
+          "meaning": "pron.我们的(所有物)",
+          "sourceText": "ours [ˈaʊəz] pron.我们的(所有物)"
+        },
+        {
+          "id": "unit-3-052",
+          "word": "lose",
+          "speech": "lose",
+          "phonetic": "luːz",
+          "meaning": "v.输掉；丢失",
+          "sourceText": "lose [luːz] v.输掉；丢失"
+        },
+        {
+          "id": "unit-3-053",
+          "word": "teenager",
+          "speech": "teenager",
+          "phonetic": "ˈtiːneɪdʒə(r)",
+          "meaning": "n.青少年(13 岁至 19 岁之间)",
+          "sourceText": "teenager [ˈtiːneɪdʒə(r)] n.青少年(13 岁至 19 岁之间)"
+        }
+      ]
+    },
+    {
+      "id": "unit-4",
+      "label": "Unit 4",
+      "title": "Eat Well",
+      "chineseTitle": "健康饮食",
+      "words": [
+        {
+          "id": "unit-4-001",
+          "word": "watermelon",
+          "speech": "watermelon",
+          "phonetic": "ˈwɔːtəmelən",
+          "meaning": "n.西瓜",
+          "sourceText": "watermelon [ˈwɔːtəmelən] n.西瓜"
+        },
+        {
+          "id": "unit-4-002",
+          "word": "cabbage",
+          "speech": "cabbage",
+          "phonetic": "ˈkæbɪdʒ",
+          "meaning": "n.卷心菜",
+          "sourceText": "cabbage /ˈkæbɪdʒ/ n.卷心菜"
+        },
+        {
+          "id": "unit-4-003",
+          "word": "mutton",
+          "speech": "mutton",
+          "phonetic": "ˈmʌtn",
+          "meaning": "n.羊肉",
+          "sourceText": "mutton /ˈmʌtn/ n.羊肉"
+        },
+        {
+          "id": "unit-4-004",
+          "word": "cookie",
+          "speech": "cookie",
+          "phonetic": "ˈkʊki",
+          "meaning": "n.曲奇饼",
+          "sourceText": "cookie /ˈkʊki/ n.曲奇饼"
+        },
+        {
+          "id": "unit-4-005",
+          "word": "onion",
+          "speech": "onion",
+          "phonetic": "ˈʌnjən",
+          "meaning": "n.洋葱；葱头",
+          "sourceText": "onion /ˈʌnjən/ n.洋葱；葱头"
+        },
+        {
+          "id": "unit-4-006",
+          "word": "dumpling",
+          "speech": "dumpling",
+          "phonetic": "ˈdʌmplɪŋ",
+          "meaning": "n.饺子",
+          "sourceText": "dumpling /ˈdʌmplɪŋ/ n.饺子"
+        },
+        {
+          "id": "unit-4-007",
+          "word": "coffee",
+          "speech": "coffee",
+          "phonetic": "ˈkɔːfi",
+          "meaning": "n.咖啡",
+          "sourceText": "coffee /ˈkɔːfi/ n.咖啡"
+        },
+        {
+          "id": "unit-4-008",
+          "word": "bean",
+          "speech": "bean",
+          "phonetic": "biːn",
+          "meaning": "n.豆",
+          "sourceText": "bean /biːn/ n.豆"
+        },
+        {
+          "id": "unit-4-009",
+          "word": "chip",
+          "speech": "chip",
+          "phonetic": "tʃɪp",
+          "meaning": "n.炸薯条",
+          "sourceText": "chip /tʃɪp/ n.炸薯条"
+        },
+        {
+          "id": "unit-4-010",
+          "word": "fish and chips",
+          "speech": "fish and chips",
+          "phonetic": "",
+          "meaning": "炸鱼薯条",
+          "sourceText": "fish and chips 炸鱼薯条"
+        },
+        {
+          "id": "unit-4-011",
+          "word": "salad",
+          "speech": "salad",
+          "phonetic": "ˈsæləd",
+          "meaning": "n.沙拉；色拉",
+          "sourceText": "salad /ˈsæləd/ n.沙拉；色拉"
+        },
+        {
+          "id": "unit-4-012",
+          "word": "porridge",
+          "speech": "porridge",
+          "phonetic": "ˈpɒrɪdʒ",
+          "meaning": "n.粥；麦片粥",
+          "sourceText": "porridge /ˈpɒrɪdʒ/ n.粥；麦片粥"
+        },
+        {
+          "id": "unit-4-013",
+          "word": "waiter",
+          "speech": "waiter",
+          "phonetic": "ˈweɪtə(r)",
+          "meaning": "n.(男)服务员",
+          "sourceText": "waiter /ˈweɪtə(r)/ n.(男)服务员"
+        },
+        {
+          "id": "unit-4-014",
+          "word": "What about…? ……",
+          "speech": "What about, ? , , ",
+          "phonetic": "",
+          "meaning": "怎么样？",
+          "sourceText": "What about…? ……怎么样？"
+        },
+        {
+          "id": "unit-4-015",
+          "word": "taste",
+          "speech": "taste",
+          "phonetic": "teɪst",
+          "meaning": "v.有……味道；尝；n.味道",
+          "sourceText": "taste /teɪst/ v.有……味道；尝；n.味道"
+        },
+        {
+          "id": "unit-4-016",
+          "word": "anything",
+          "speech": "anything",
+          "phonetic": "ˈeniθɪŋ",
+          "meaning": "pron.某物；任何事物",
+          "sourceText": "anything /ˈeniθɪŋ/ pron.某物；任何事物"
+        },
+        {
+          "id": "unit-4-017",
+          "word": "dish",
+          "speech": "dish",
+          "phonetic": "dɪʃ",
+          "meaning": "n.一道菜；盘",
+          "sourceText": "dish /dɪʃ/ n.一道菜；盘"
+        },
+        {
+          "id": "unit-4-018",
+          "word": "choice",
+          "speech": "choice",
+          "phonetic": "tʃɔɪs",
+          "meaning": "n.选择",
+          "sourceText": "choice /tʃɔɪs/ n.选择"
+        },
+        {
+          "id": "unit-4-019",
+          "word": "meal",
+          "speech": "meal",
+          "phonetic": "miːl",
+          "meaning": "n.一餐所吃的食物；早(午、晚)餐",
+          "sourceText": "meal /miːl/ n.一餐所吃的食物；早(午、晚)餐"
+        },
+        {
+          "id": "unit-4-020",
+          "word": "pork",
+          "speech": "pork",
+          "phonetic": "pɔːk",
+          "meaning": "n.猪肉",
+          "sourceText": "pork /pɔːk/ n.猪肉"
+        },
+        {
+          "id": "unit-4-021",
+          "word": "strawberry",
+          "speech": "strawberry",
+          "phonetic": "ˈstrɔːbəri",
+          "meaning": "n.草莓",
+          "sourceText": "strawberry /ˈstrɔːbəri/ n.草莓"
+        },
+        {
+          "id": "unit-4-022",
+          "word": "menu",
+          "speech": "menu",
+          "phonetic": "ˈmenjuː",
+          "meaning": "n.菜单",
+          "sourceText": "menu /ˈmenjuː/ n.菜单"
+        },
+        {
+          "id": "unit-4-023",
+          "word": "customer",
+          "speech": "customer",
+          "phonetic": "ˈkʌstəmə(r)",
+          "meaning": "n.顾客",
+          "sourceText": "customer /ˈkʌstəmə(r)/ n.顾客"
+        },
+        {
+          "id": "unit-4-024",
+          "word": "serve",
+          "speech": "serve",
+          "phonetic": "sɜːv",
+          "meaning": "v.提供；服务",
+          "sourceText": "serve /sɜːv/ v.提供；服务"
+        },
+        {
+          "id": "unit-4-025",
+          "word": "waitress",
+          "speech": "waitress",
+          "phonetic": "ˈweɪtrəs",
+          "meaning": "n.女服务员",
+          "sourceText": "waitress /ˈweɪtrəs/ n.女服务员"
+        },
+        {
+          "id": "unit-4-026",
+          "word": "sir",
+          "speech": "sir",
+          "phonetic": "sɜː(r)",
+          "meaning": "n.先生",
+          "sourceText": "sir /sɜː(r)/ n.先生"
+        },
+        {
+          "id": "unit-4-027",
+          "word": "go with",
+          "speech": "go with",
+          "phonetic": "",
+          "meaning": "搭配；相配",
+          "sourceText": "go with 搭配；相配"
+        },
+        {
+          "id": "unit-4-028",
+          "word": "pear",
+          "speech": "pear",
+          "phonetic": "peə(r)",
+          "meaning": "n.梨",
+          "sourceText": "pear /peə(r)/ n.梨"
+        },
+        {
+          "id": "unit-4-029",
+          "word": "too much",
+          "speech": "too much",
+          "phonetic": "",
+          "meaning": "太多",
+          "sourceText": "too much 太多"
+        },
+        {
+          "id": "unit-4-030",
+          "word": "sugar",
+          "speech": "sugar",
+          "phonetic": "ˈʃʊɡə(r)",
+          "meaning": "n.糖",
+          "sourceText": "sugar /ˈʃʊɡə(r)/ n.糖"
+        },
+        {
+          "id": "unit-4-031",
+          "word": "improve",
+          "speech": "improve",
+          "phonetic": "ɪmˈpruːv",
+          "meaning": "v.改进；改善",
+          "sourceText": "improve /ɪmˈpruːv/ v.改进；改善"
+        },
+        {
+          "id": "unit-4-032",
+          "word": "habit",
+          "speech": "habit",
+          "phonetic": "ˈhæbɪt",
+          "meaning": "n.习惯",
+          "sourceText": "habit /ˈhæbɪt/ n.习惯"
+        },
+        {
+          "id": "unit-4-033",
+          "word": "fast food",
+          "speech": "fast food",
+          "phonetic": "",
+          "meaning": "快餐",
+          "sourceText": "fast food 快餐"
+        },
+        {
+          "id": "unit-4-034",
+          "word": "salt",
+          "speech": "salt",
+          "phonetic": "sɔːlt, sɒlt",
+          "meaning": "n.盐",
+          "sourceText": "salt /sɔːlt, sɒlt/ n.盐"
+        },
+        {
+          "id": "unit-4-035",
+          "word": "fat",
+          "speech": "fat",
+          "phonetic": "fæt",
+          "meaning": "n.脂肪；adj.肥胖的",
+          "sourceText": "fat /fæt/ n.脂肪；adj.肥胖的"
+        },
+        {
+          "id": "unit-4-036",
+          "word": "put on",
+          "speech": "put on",
+          "phonetic": "",
+          "meaning": "增加",
+          "sourceText": "put on 增加"
+        },
+        {
+          "id": "unit-4-037",
+          "word": "weight",
+          "speech": "weight",
+          "phonetic": "weɪt",
+          "meaning": "n.体重；重量",
+          "sourceText": "weight /weɪt/ n.体重；重量"
+        },
+        {
+          "id": "unit-4-038",
+          "word": "hamburger",
+          "speech": "hamburger",
+          "phonetic": "ˈhæmbɜːɡə(r)",
+          "meaning": "n.汉堡包",
+          "sourceText": "hamburger /ˈhæmbɜːɡə(r)/ n.汉堡包"
+        },
+        {
+          "id": "unit-4-039",
+          "word": "cause",
+          "speech": "cause",
+          "phonetic": "kɔːz",
+          "meaning": "v.造成；导致",
+          "sourceText": "cause /kɔːz/ v.造成；导致"
+        },
+        {
+          "id": "unit-4-040",
+          "word": "heart",
+          "speech": "heart",
+          "phonetic": "hɑːt",
+          "meaning": "n.心脏；中心",
+          "sourceText": "heart /hɑːt/ n.心脏；中心"
+        },
+        {
+          "id": "unit-4-041",
+          "word": "balanced",
+          "speech": "balanced",
+          "phonetic": "ˈbælənst",
+          "meaning": "adj.均衡的；平衡的",
+          "sourceText": "balanced /ˈbælənst/ adj.均衡的；平衡的"
+        },
+        {
+          "id": "unit-4-042",
+          "word": "too….to",
+          "speech": "too, to",
+          "phonetic": "",
+          "meaning": "太……以至于无法……",
+          "sourceText": "too….to 太……以至于无法……"
+        },
+        {
+          "id": "unit-4-043",
+          "word": "energy",
+          "speech": "energy",
+          "phonetic": "ˈenədʒi",
+          "meaning": "n.能量",
+          "sourceText": "energy /ˈenədʒi/ n.能量"
+        },
+        {
+          "id": "unit-4-044",
+          "word": "after all",
+          "speech": "after all",
+          "phonetic": "",
+          "meaning": "毕竟",
+          "sourceText": "after all 毕竟"
+        },
+        {
+          "id": "unit-4-045",
+          "word": "away",
+          "speech": "away",
+          "phonetic": "əˈweɪ",
+          "meaning": "adv.离开；在远处",
+          "sourceText": "away /əˈweɪ/ adv.离开；在远处"
+        },
+        {
+          "id": "unit-4-046",
+          "word": "poor",
+          "speech": "poor",
+          "phonetic": "pɔː(r); pʊə(r)",
+          "meaning": "adj.不好的；贫穷的；可怜的",
+          "sourceText": "poor /pɔː(r); pʊə(r)/ adj.不好的；贫穷的；可怜的"
+        },
+        {
+          "id": "unit-4-047",
+          "word": "result",
+          "speech": "result",
+          "phonetic": "rɪˈzʌlt",
+          "meaning": "n.后果；结果",
+          "sourceText": "result /rɪˈzʌlt/ n.后果；结果"
+        },
+        {
+          "id": "unit-4-048",
+          "word": "article",
+          "speech": "article",
+          "phonetic": "ˈɑːtɪkl",
+          "meaning": "n.文章；冠词",
+          "sourceText": "article /ˈɑːtɪkl/ n.文章；冠词"
+        },
+        {
+          "id": "unit-4-049",
+          "word": "common",
+          "speech": "common",
+          "phonetic": "ˈkɒmən",
+          "meaning": "adj.共同的；普通的",
+          "sourceText": "common /ˈkɒmən/ adj.共同的；普通的"
+        },
+        {
+          "id": "unit-4-050",
+          "word": "among",
+          "speech": "among",
+          "phonetic": "əˈmʌŋ",
+          "meaning": "prep.在……之中",
+          "sourceText": "among /əˈmʌŋ/ prep.在……之中"
+        },
+        {
+          "id": "unit-4-051",
+          "word": "soft",
+          "speech": "soft",
+          "phonetic": "sɒft",
+          "meaning": "adj.柔和的；柔软的",
+          "sourceText": "soft /sɒft/ adj.柔和的；柔软的"
+        },
+        {
+          "id": "unit-4-052",
+          "word": "soft drink",
+          "speech": "soft drink",
+          "phonetic": "",
+          "meaning": "软饮料(不含酒精)",
+          "sourceText": "soft drink 软饮料(不含酒精)"
+        },
+        {
+          "id": "unit-4-053",
+          "word": "thirsty",
+          "speech": "thirsty",
+          "phonetic": "ˈθɜːsti",
+          "meaning": "adj.渴的",
+          "sourceText": "thirsty /ˈθɜːsti/ adj.渴的"
+        },
+        {
+          "id": "unit-4-054",
+          "word": "Gongbao chicken",
+          "speech": "Gongbao chicken",
+          "phonetic": "",
+          "meaning": "宫保鸡丁",
+          "sourceText": "Gongbao chicken 宫保鸡丁"
+        },
+        {
+          "id": "unit-4-055",
+          "word": "America",
+          "speech": "America",
+          "phonetic": "əˈmerɪkə",
+          "meaning": "美国；美洲",
+          "sourceText": "America /əˈmerɪkə/ 美国；美洲"
+        },
+        {
+          "id": "unit-4-056",
+          "word": "Dongpo pork",
+          "speech": "Dongpo pork",
+          "phonetic": "",
+          "meaning": "东坡肉",
+          "sourceText": "Dongpo pork 东坡肉"
+        }
+      ]
+    },
+    {
+      "id": "unit-5",
+      "label": "Unit 5",
+      "title": "Here and Now",
+      "chineseTitle": "此时此地",
+      "words": [
+        {
+          "id": "unit-5-001",
+          "word": "ride",
+          "speech": "ride",
+          "phonetic": "raɪd",
+          "meaning": "v.骑；n.旅程",
+          "sourceText": "ride /raɪd/ v.骑；n.旅程"
+        },
+        {
+          "id": "unit-5-002",
+          "word": "moment",
+          "speech": "moment",
+          "phonetic": "ˈməʊmənt",
+          "meaning": "n.某个时刻；片刻；瞬间",
+          "sourceText": "moment /ˈməʊmənt/ n.某个时刻；片刻；瞬间"
+        },
+        {
+          "id": "unit-5-003",
+          "word": "at the moment",
+          "speech": "at the moment",
+          "phonetic": "",
+          "meaning": "现在；此刻",
+          "sourceText": "at the moment 现在；此刻"
+        },
+        {
+          "id": "unit-5-004",
+          "word": "work on",
+          "speech": "work on",
+          "phonetic": "",
+          "meaning": "做；从事",
+          "sourceText": "work on 做；从事"
+        },
+        {
+          "id": "unit-5-005",
+          "word": "dragon",
+          "speech": "dragon",
+          "phonetic": "ˈdræɡən",
+          "meaning": "n.龙",
+          "sourceText": "dragon /ˈdræɡən/ n.龙"
+        },
+        {
+          "id": "unit-5-006",
+          "word": "festival",
+          "speech": "festival",
+          "phonetic": "ˈfestəvl",
+          "meaning": "n.节日",
+          "sourceText": "festival /ˈfestəvl/ n.节日"
+        },
+        {
+          "id": "unit-5-007",
+          "word": "hold",
+          "speech": "hold",
+          "phonetic": "həʊld",
+          "meaning": "v.拿着；抓住",
+          "sourceText": "hold /həʊld/ v.拿着；抓住"
+        },
+        {
+          "id": "unit-5-008",
+          "word": "hold on",
+          "speech": "hold on",
+          "phonetic": "",
+          "meaning": "别挂断电话；等一等",
+          "sourceText": "hold on 别挂断电话；等一等"
+        },
+        {
+          "id": "unit-5-009",
+          "word": "voice",
+          "speech": "voice",
+          "phonetic": "vɔɪs",
+          "meaning": "n.嗓音；声音",
+          "sourceText": "voice /vɔɪs/ n.嗓音；声音"
+        },
+        {
+          "id": "unit-5-010",
+          "word": "race",
+          "speech": "race",
+          "phonetic": "reɪs",
+          "meaning": "n,比赛，竞赛",
+          "sourceText": "race/reɪs/n,比赛，竞赛"
+        },
+        {
+          "id": "unit-5-011",
+          "word": "darling",
+          "speech": "darling",
+          "phonetic": "ˈdɑːlɪŋ",
+          "meaning": "n.亲爱的",
+          "sourceText": "darling /ˈdɑːlɪŋ/ n.亲爱的"
+        },
+        {
+          "id": "unit-5-012",
+          "word": "somebody",
+          "speech": "somebody",
+          "phonetic": "ˈsʌmbədi",
+          "meaning": "pron.某人；有人",
+          "sourceText": "somebody /ˈsʌmbədi/ pron.某人；有人"
+        },
+        {
+          "id": "unit-5-013",
+          "word": "could",
+          "speech": "could",
+          "phonetic": "kʊd; kəd",
+          "meaning": "modal v. 能，可以",
+          "sourceText": "could/kʊd; kəd/ modal v. 能，可以"
+        },
+        {
+          "id": "unit-5-014",
+          "word": "message",
+          "speech": "message",
+          "phonetic": "ˈmesɪdʒ",
+          "meaning": "n.消息；信息",
+          "sourceText": "message /ˈmesɪdʒ/ n.消息；信息"
+        },
+        {
+          "id": "unit-5-015",
+          "word": "take a message",
+          "speech": "take a message",
+          "phonetic": "",
+          "meaning": "捎口信",
+          "sourceText": "take a message 捎口信"
+        },
+        {
+          "id": "unit-5-016",
+          "word": "leave a message",
+          "speech": "leave a message",
+          "phonetic": "",
+          "meaning": "留个口信",
+          "sourceText": "leave a message 留个口信"
+        },
+        {
+          "id": "unit-5-017",
+          "word": "call back",
+          "speech": "call back",
+          "phonetic": "",
+          "meaning": "回电话",
+          "sourceText": "call back 回电话"
+        },
+        {
+          "id": "unit-5-018",
+          "word": "kick",
+          "speech": "kick",
+          "phonetic": "kɪk",
+          "meaning": "v.踢；踹",
+          "sourceText": "kick /kɪk/ v.踢；踹"
+        },
+        {
+          "id": "unit-5-019",
+          "word": "wow",
+          "speech": "wow",
+          "phonetic": "waʊ",
+          "meaning": "interj.哇；呀",
+          "sourceText": "wow /waʊ/ interj.哇；呀"
+        },
+        {
+          "id": "unit-5-020",
+          "word": "online",
+          "speech": "online",
+          "phonetic": "ˌɒnˈlaɪn",
+          "meaning": "adj.在线的",
+          "sourceText": "online /ˌɒnˈlaɪn/ adj.在线的"
+        },
+        {
+          "id": "unit-5-021",
+          "word": "shuttlecock",
+          "speech": "shuttlecock",
+          "phonetic": "ˈʃʌtlkɒk",
+          "meaning": "n.羽毛球",
+          "sourceText": "shuttlecock /ˈʃʌtlkɒk/ n.羽毛球"
+        },
+        {
+          "id": "unit-5-022",
+          "word": "sight",
+          "speech": "sight",
+          "phonetic": "saɪt",
+          "meaning": "n.名胜；风景；视力",
+          "sourceText": "sight /saɪt/ n.名胜；风景；视力"
+        },
+        {
+          "id": "unit-5-023",
+          "word": "exam",
+          "speech": "exam",
+          "phonetic": "ɪɡˈzæm；ɪɡˌzæmɪˈneɪʃn)",
+          "meaning": "n.考试",
+          "sourceText": "exam/ɪɡˈzæm/=examination /ɪɡˌzæmɪˈneɪʃn)/ n.考试"
+        },
+        {
+          "id": "unit-5-024",
+          "word": "hope",
+          "speech": "hope",
+          "phonetic": "həʊp",
+          "meaning": "v.&n.希望",
+          "sourceText": "hope /həʊp/ v.&n.希望"
+        },
+        {
+          "id": "unit-5-025",
+          "word": "forward",
+          "speech": "forward",
+          "phonetic": "ˈfɔːwəd",
+          "meaning": "adv.向前",
+          "sourceText": "forward /ˈfɔːwəd/ adv.向前"
+        },
+        {
+          "id": "unit-5-026",
+          "word": "look forward to",
+          "speech": "look forward to",
+          "phonetic": "",
+          "meaning": "希望",
+          "sourceText": "look forward to 希望"
+        },
+        {
+          "id": "unit-5-027",
+          "word": "skate",
+          "speech": "skate",
+          "phonetic": "skeɪt",
+          "meaning": "v.滑冰",
+          "sourceText": "skate/skeɪt/ v.滑冰"
+        },
+        {
+          "id": "unit-5-028",
+          "word": "happen",
+          "speech": "happen",
+          "phonetic": "ˈhæpən",
+          "meaning": "v.发生",
+          "sourceText": "happen /ˈhæpən/ v.发生"
+        },
+        {
+          "id": "unit-5-029",
+          "word": "zone",
+          "speech": "zone",
+          "phonetic": "zəʊn",
+          "meaning": "n.地区；地带；区域",
+          "sourceText": "zone /zəʊn/ n.地区；地带；区域"
+        },
+        {
+          "id": "unit-5-030",
+          "word": "time zone",
+          "speech": "time zone",
+          "phonetic": "",
+          "meaning": "时区",
+          "sourceText": "time zone 时区"
+        },
+        {
+          "id": "unit-5-031",
+          "word": "around the world",
+          "speech": "around the world",
+          "phonetic": "",
+          "meaning": "世界各地",
+          "sourceText": "around the world 世界各地"
+        },
+        {
+          "id": "unit-5-032",
+          "word": "right now",
+          "speech": "right now",
+          "phonetic": "",
+          "meaning": "现在；立刻",
+          "sourceText": "right now 现在；立刻"
+        },
+        {
+          "id": "unit-5-033",
+          "word": "rush",
+          "speech": "rush",
+          "phonetic": "rʌʃ",
+          "meaning": "v.&n.冲；奔",
+          "sourceText": "rush /rʌʃ/ v.&n.冲；奔"
+        },
+        {
+          "id": "unit-5-034",
+          "word": "in a hurry",
+          "speech": "in a hurry",
+          "phonetic": "",
+          "meaning": "匆忙",
+          "sourceText": "in a hurry 匆忙"
+        },
+        {
+          "id": "unit-5-035",
+          "word": "shine",
+          "speech": "shine",
+          "phonetic": "ʃaɪn",
+          "meaning": "v.发光；照耀；n.光亮",
+          "sourceText": "shine /ʃaɪn/ v.发光；照耀；n.光亮"
+        },
+        {
+          "id": "unit-5-036",
+          "word": "brightly",
+          "speech": "brightly",
+          "phonetic": "ˈbraɪtli",
+          "meaning": "adv.明亮地",
+          "sourceText": "brightly /ˈbraɪtli/ adv.明亮地"
+        },
+        {
+          "id": "unit-5-037",
+          "word": "colourful",
+          "speech": "colourful",
+          "phonetic": "ˈkʌləfl",
+          "meaning": "adj.色彩鲜艳的",
+          "sourceText": "colourful /ˈkʌləfl/ adj.色彩鲜艳的"
+        },
+        {
+          "id": "unit-5-038",
+          "word": "slowly",
+          "speech": "slowly",
+          "phonetic": "ˈsləʊli",
+          "meaning": "adv.缓慢地",
+          "sourceText": "slowly /ˈsləʊli/ adv.缓慢地"
+        },
+        {
+          "id": "unit-5-039",
+          "word": "such",
+          "speech": "such",
+          "phonetic": "sʌtʃ",
+          "meaning": "adj.这样的；那样的；pron.这样（那样）的人或事物",
+          "sourceText": "such /sʌtʃ/ adj.这样的；那样的；pron.这样（那样）的人或事物"
+        },
+        {
+          "id": "unit-5-040",
+          "word": "such as",
+          "speech": "such as",
+          "phonetic": "",
+          "meaning": "例如",
+          "sourceText": "such as 例如"
+        },
+        {
+          "id": "unit-5-041",
+          "word": "painting",
+          "speech": "painting",
+          "phonetic": "ˈpeɪntɪŋ",
+          "meaning": "n.绘画作品；绘画;油画",
+          "sourceText": "painting /ˈpeɪntɪŋ/ n.绘画作品；绘画;油画"
+        },
+        {
+          "id": "unit-5-042",
+          "word": "market",
+          "speech": "market",
+          "phonetic": "ˈmɑːkɪt",
+          "meaning": "n.市场",
+          "sourceText": "market /ˈmɑːkɪt/ n.市场"
+        },
+        {
+          "id": "unit-5-043",
+          "word": "side",
+          "speech": "side",
+          "phonetic": "saɪd",
+          "meaning": "n.边；侧",
+          "sourceText": "side /saɪd/ n.边；侧"
+        },
+        {
+          "id": "unit-5-044",
+          "word": "side by side",
+          "speech": "side by side",
+          "phonetic": "",
+          "meaning": "并排",
+          "sourceText": "side by side 并排"
+        },
+        {
+          "id": "unit-5-045",
+          "word": "subway",
+          "speech": "subway",
+          "phonetic": "sʌbweɪ",
+          "meaning": "n.地铁",
+          "sourceText": "subway/sʌbweɪ/n.地铁"
+        },
+        {
+          "id": "unit-5-046",
+          "word": "bright",
+          "speech": "bright",
+          "phonetic": "braɪt",
+          "meaning": "adj.鲜艳的；明亮的；聪明的",
+          "sourceText": "bright /braɪt/ adj.鲜艳的；明亮的；聪明的"
+        },
+        {
+          "id": "unit-5-047",
+          "word": "drop",
+          "speech": "drop",
+          "phonetic": "drɒp",
+          "meaning": "v.把……送至；落下；n.滴；下降",
+          "sourceText": "drop /drɒp/ v.把……送至；落下；n.滴；下降"
+        },
+        {
+          "id": "unit-5-048",
+          "word": "drop off(",
+          "speech": "drop off(",
+          "phonetic": "",
+          "meaning": "开车)把某人送到某处",
+          "sourceText": "drop off(开车)把某人送到某处"
+        },
+        {
+          "id": "unit-5-049",
+          "word": "passenger",
+          "speech": "passenger",
+          "phonetic": "ˈpæsɪndʒə(r)",
+          "meaning": "n.乘客",
+          "sourceText": "passenger /ˈpæsɪndʒə(r)/ n.乘客"
+        },
+        {
+          "id": "unit-5-050",
+          "word": "central",
+          "speech": "central",
+          "phonetic": "ˈsentrəl",
+          "meaning": "adj.中心的；中央的",
+          "sourceText": "central /ˈsentrəl/ adj.中心的；中央的"
+        },
+        {
+          "id": "unit-5-051",
+          "word": "take part in",
+          "speech": "take part in",
+          "phonetic": "",
+          "meaning": "参加",
+          "sourceText": "take part in 参加"
+        },
+        {
+          "id": "unit-5-052",
+          "word": "tour",
+          "speech": "tour",
+          "phonetic": "tʊə(r)",
+          "meaning": "n.&v.旅行；旅游",
+          "sourceText": "tour /tʊə(r)/ n.&v.旅行；旅游"
+        },
+        {
+          "id": "unit-5-053",
+          "word": "sunshine",
+          "speech": "sunshine",
+          "phonetic": "ˈsʌnʃaɪn",
+          "meaning": "n.阳光",
+          "sourceText": "sunshine /ˈsʌnʃaɪn/ n.阳光"
+        },
+        {
+          "id": "unit-5-054",
+          "word": "drive",
+          "speech": "drive",
+          "phonetic": "draɪv",
+          "meaning": "v.开车；驾驶",
+          "sourceText": "drive /draɪv/ v.开车；驾驶"
+        },
+        {
+          "id": "unit-5-055",
+          "word": "rush hour(",
+          "speech": "rush hour(",
+          "phonetic": "",
+          "meaning": "上下班时的)交通高峰期",
+          "sourceText": "rush hour(上下班时的)交通高峰期"
+        },
+        {
+          "id": "unit-5-056",
+          "word": "Dragon Boat Festival",
+          "speech": "Dragon Boat Festival",
+          "phonetic": "ˈdræɡən bəʊt ˈfestəvl",
+          "meaning": "n.端午节",
+          "sourceText": "Dragon Boat Festival /ˈdræɡən bəʊt ˈfestəvl/ n.端午节"
+        }
+      ]
+    },
+    {
+      "id": "unit-6",
+      "label": "Unit 6",
+      "title": "Rain or Shine",
+      "chineseTitle": "天气",
+      "words": [
+        {
+          "id": "unit-6-001",
+          "word": "rain or shine",
+          "speech": "rain or shine",
+          "phonetic": "",
+          "meaning": "不论是雨或是晴；不管发生什么事",
+          "sourceText": "rain or shine 不论是雨或是晴；不管发生什么事"
+        },
+        {
+          "id": "unit-6-002",
+          "word": "affect",
+          "speech": "affect",
+          "phonetic": "əˈfekt",
+          "meaning": "v.影响",
+          "sourceText": "affect /əˈfekt/ v.影响"
+        },
+        {
+          "id": "unit-6-003",
+          "word": "dry",
+          "speech": "dry",
+          "phonetic": "draɪ",
+          "meaning": "adj.干的；干旱的",
+          "sourceText": "dry /draɪ/ adj.干的；干旱的"
+        },
+        {
+          "id": "unit-6-004",
+          "word": "lightning",
+          "speech": "lightning",
+          "phonetic": "ˈlaɪtnɪŋ",
+          "meaning": "n.闪电",
+          "sourceText": "lightning /ˈlaɪtnɪŋ/ n.闪电"
+        },
+        {
+          "id": "unit-6-005",
+          "word": "stormy",
+          "speech": "stormy",
+          "phonetic": "ˈstɔːmi",
+          "meaning": "adj.有暴风雨（或暴风雪）的",
+          "sourceText": "stormy /ˈstɔːmi/ adj.有暴风雨（或暴风雪）的"
+        },
+        {
+          "id": "unit-6-006",
+          "word": "north",
+          "speech": "north",
+          "phonetic": "nɔːθ",
+          "meaning": "n.北部；北；北方",
+          "sourceText": "north /nɔːθ/ n.北部；北；北方"
+        },
+        {
+          "id": "unit-6-007",
+          "word": "west",
+          "speech": "west",
+          "phonetic": "west",
+          "meaning": "n.西部；西；西方",
+          "sourceText": "west /west/ n.西部；西；西方"
+        },
+        {
+          "id": "unit-6-008",
+          "word": "south",
+          "speech": "south",
+          "phonetic": "saʊθ",
+          "meaning": "n.南部；南；南方",
+          "sourceText": "south /saʊθ/ n.南部；南；南方"
+        },
+        {
+          "id": "unit-6-009",
+          "word": "east",
+          "speech": "east",
+          "phonetic": "iːst",
+          "meaning": "n.东部；东；东方",
+          "sourceText": "east /iːst/ n.东部；东；东方"
+        },
+        {
+          "id": "unit-6-010",
+          "word": "centre",
+          "speech": "centre",
+          "phonetic": "ˈsentə(r)",
+          "meaning": "n.中间；中心点",
+          "sourceText": "centre /ˈsentə(r)/ n.中间；中心点"
+        },
+        {
+          "id": "unit-6-011",
+          "word": "stay in",
+          "speech": "stay in",
+          "phonetic": "",
+          "meaning": "待在家里；没有外出",
+          "sourceText": "stay in待在家里；没有外出"
+        },
+        {
+          "id": "unit-6-012",
+          "word": "lucky",
+          "speech": "lucky",
+          "phonetic": "ˈlʌki",
+          "meaning": "adj.运气好的；带来好运的",
+          "sourceText": "lucky /ˈlʌki/ adj.运气好的；带来好运的"
+        },
+        {
+          "id": "unit-6-013",
+          "word": "lucky you",
+          "speech": "lucky you",
+          "phonetic": "",
+          "meaning": "你真幸运",
+          "sourceText": "lucky you 你真幸运"
+        },
+        {
+          "id": "unit-6-014",
+          "word": "sunbathe",
+          "speech": "sunbathe",
+          "phonetic": "ˈsʌnbeɪð",
+          "meaning": "v.沐日光浴；晒太阳",
+          "sourceText": "sunbathe /ˈsʌnbeɪð/ v.沐日光浴；晒太阳"
+        },
+        {
+          "id": "unit-6-015",
+          "word": "some day",
+          "speech": "some day",
+          "phonetic": "",
+          "meaning": "将来；有朝一日",
+          "sourceText": "some day 将来；有朝一日"
+        },
+        {
+          "id": "unit-6-016",
+          "word": "temperature",
+          "speech": "temperature",
+          "phonetic": "ˈtemprətʃə(r)",
+          "meaning": "n.温度",
+          "sourceText": "temperature /ˈtemprətʃə(r)/ n.温度"
+        },
+        {
+          "id": "unit-6-017",
+          "word": "snowman",
+          "speech": "snowman",
+          "phonetic": "ˈsnəʊmæn",
+          "meaning": "n.(pl.snowmen /ˈsnəʊmən/)雪人",
+          "sourceText": "snowman /ˈsnəʊmæn/ n.(pl.snowmen /ˈsnəʊmən/)雪人"
+        },
+        {
+          "id": "unit-6-018",
+          "word": "heavily",
+          "speech": "heavily",
+          "phonetic": "’hevɪli",
+          "meaning": "adv.大量地；沉重地",
+          "sourceText": "heavily/’hevɪli/adv.大量地；沉重地"
+        },
+        {
+          "id": "unit-6-019",
+          "word": "snowy",
+          "speech": "snowy",
+          "phonetic": "snəʊi",
+          "meaning": "adj.下雪的，雪白的",
+          "sourceText": "snowy/snəʊi/adj.下雪的，雪白的"
+        },
+        {
+          "id": "unit-6-020",
+          "word": "beach volleyball",
+          "speech": "beach volleyball",
+          "phonetic": "",
+          "meaning": "沙滩排球",
+          "sourceText": "beach volleyball 沙滩排球"
+        },
+        {
+          "id": "unit-6-021",
+          "word": "high",
+          "speech": "high",
+          "phonetic": "haɪ",
+          "meaning": "adv. & adj.在高处；高的",
+          "sourceText": "high /haɪ/ adv. & adj.在高处；高的"
+        },
+        {
+          "id": "unit-6-022",
+          "word": "freezing",
+          "speech": "freezing",
+          "phonetic": "ˈfriːzɪŋ",
+          "meaning": "adj.极冷的；冰冻的",
+          "sourceText": "freezing /ˈfriːzɪŋ/ adj.极冷的；冰冻的"
+        },
+        {
+          "id": "unit-6-023",
+          "word": "tourist",
+          "speech": "tourist",
+          "phonetic": "ˈtʊərɪst",
+          "meaning": "n.旅行者；观光客",
+          "sourceText": "tourist /ˈtʊərɪst/ n.旅行者；观光客"
+        },
+        {
+          "id": "unit-6-024",
+          "word": "mount",
+          "speech": "mount",
+          "phonetic": "maʊnt",
+          "meaning": "n.(在现代英语里仅用于地名)山；山峰",
+          "sourceText": "mount /maʊnt/ n.(在现代英语里仅用于地名)山；山峰"
+        },
+        {
+          "id": "unit-6-025",
+          "word": "cloud",
+          "speech": "cloud",
+          "phonetic": "klaʊd",
+          "meaning": "n.云；云彩",
+          "sourceText": "cloud /klaʊd/ n.云；云彩"
+        },
+        {
+          "id": "unit-6-026",
+          "word": "feel like",
+          "speech": "feel like",
+          "phonetic": "",
+          "meaning": "想要；感觉像",
+          "sourceText": "feel like"
+        },
+        {
+          "id": "unit-6-027",
+          "word": "magical",
+          "speech": "magical",
+          "phonetic": "ˈmædʒɪkl",
+          "meaning": "adj.魔法的；神奇的",
+          "sourceText": "magical /ˈmædʒɪkl/ adj.魔法的；神奇的"
+        },
+        {
+          "id": "unit-6-028",
+          "word": "rock",
+          "speech": "rock",
+          "phonetic": "rɒk",
+          "meaning": "n.岩石",
+          "sourceText": "rock /rɒk/ n.岩石"
+        },
+        {
+          "id": "unit-6-029",
+          "word": "rest",
+          "speech": "rest",
+          "phonetic": "rest",
+          "meaning": "n.休息；剩余部分",
+          "sourceText": "rest /rest/ n.休息；剩余部分"
+        },
+        {
+          "id": "unit-6-030",
+          "word": "area",
+          "speech": "area",
+          "phonetic": "ˈeəriə",
+          "meaning": "n.场地；地区",
+          "sourceText": "area /ˈeəriə/ n.场地；地区"
+        },
+        {
+          "id": "unit-6-031",
+          "word": "rest area",
+          "speech": "rest area",
+          "phonetic": "",
+          "meaning": "休息区",
+          "sourceText": "rest area休息区"
+        },
+        {
+          "id": "unit-6-032",
+          "word": "make progress",
+          "speech": "make progress",
+          "phonetic": "",
+          "meaning": "取得进展",
+          "sourceText": "make progress 取得进展"
+        },
+        {
+          "id": "unit-6-033",
+          "word": "although",
+          "speech": "although",
+          "phonetic": "ɔːlˈðəʊ",
+          "meaning": "conj.虽然；尽管",
+          "sourceText": "although /ɔːlˈðəʊ/ conj.虽然；尽管"
+        },
+        {
+          "id": "unit-6-034",
+          "word": "in high spirits",
+          "speech": "in high spirits",
+          "phonetic": "",
+          "meaning": "情绪高涨；兴高采烈",
+          "sourceText": "in high spirits 情绪高涨；兴高采烈"
+        },
+        {
+          "id": "unit-6-035",
+          "word": "experience",
+          "speech": "experience",
+          "phonetic": "ɪkˈspɪəriəns",
+          "meaning": "n.经历；经验；v.经历",
+          "sourceText": "experience /ɪkˈspɪəriəns/ n.经历；经验；v.经历"
+        },
+        {
+          "id": "unit-6-036",
+          "word": "through",
+          "speech": "through",
+          "phonetic": "θruː",
+          "meaning": "prep.穿过；凭借",
+          "sourceText": "through /θruː/ prep.穿过；凭借"
+        },
+        {
+          "id": "unit-6-037",
+          "word": "glad",
+          "speech": "glad",
+          "phonetic": "ɡlæd",
+          "meaning": "adj.高兴的",
+          "sourceText": "glad /ɡlæd/ adj.高兴的"
+        },
+        {
+          "id": "unit-6-038",
+          "word": "peak",
+          "speech": "peak",
+          "phonetic": "piːk",
+          "meaning": "n.山顶",
+          "sourceText": "peak /piːk/ n.山顶"
+        },
+        {
+          "id": "unit-6-039",
+          "word": "grey",
+          "speech": "grey",
+          "phonetic": "ɡreɪ",
+          "meaning": "adj.灰色的",
+          "sourceText": "grey /ɡreɪ/ adj.灰色的"
+        },
+        {
+          "id": "unit-6-040",
+          "word": "because of",
+          "speech": "because of",
+          "phonetic": "",
+          "meaning": "因为",
+          "sourceText": "because of 因为"
+        },
+        {
+          "id": "unit-6-041",
+          "word": "fog",
+          "speech": "fog",
+          "phonetic": "fɒɡ",
+          "meaning": "n.雾",
+          "sourceText": "fog /fɒɡ/ n.雾"
+        },
+        {
+          "id": "unit-6-042",
+          "word": "ground",
+          "speech": "ground",
+          "phonetic": "ɡraʊnd",
+          "meaning": "n.地面",
+          "sourceText": "ground /ɡraʊnd/ n.地面"
+        },
+        {
+          "id": "unit-6-043",
+          "word": "wet",
+          "speech": "wet",
+          "phonetic": "wet",
+          "meaning": "adj.湿的",
+          "sourceText": "wet /wet/ adj.湿的"
+        },
+        {
+          "id": "unit-6-044",
+          "word": "tiring",
+          "speech": "tiring",
+          "phonetic": "ˈtaɪərɪŋ",
+          "meaning": "adj.令人疲倦的；累人的",
+          "sourceText": "tiring /ˈtaɪərɪŋ/ adj.令人疲倦的；累人的"
+        },
+        {
+          "id": "unit-6-045",
+          "word": "seem",
+          "speech": "seem",
+          "phonetic": "siːm",
+          "meaning": "v.似乎；好像",
+          "sourceText": "seem /siːm/ v.似乎；好像"
+        },
+        {
+          "id": "unit-6-046",
+          "word": "sunlight",
+          "speech": "sunlight",
+          "phonetic": "ˈsʌnlaɪt",
+          "meaning": "n.阳光",
+          "sourceText": "sunlight /ˈsʌnlaɪt/ n.阳光"
+        },
+        {
+          "id": "unit-6-047",
+          "word": "at the top",
+          "speech": "at the top",
+          "phonetic": "",
+          "meaning": "在顶部；在顶端",
+          "sourceText": "at the top 在顶部；在顶端"
+        },
+        {
+          "id": "unit-6-048",
+          "word": "thought",
+          "speech": "thought",
+          "phonetic": "θɔːt",
+          "meaning": "n.想法",
+          "sourceText": "thought /θɔːt/ n.想法"
+        },
+        {
+          "id": "unit-6-049",
+          "word": "mountain",
+          "speech": "mountain",
+          "phonetic": "ˈmaʊntən",
+          "meaning": "n.山；高山",
+          "sourceText": "mountain /ˈmaʊntən/ n.山；高山"
+        },
+        {
+          "id": "unit-6-050",
+          "word": "end",
+          "speech": "end",
+          "phonetic": "end",
+          "meaning": "n.末尾；结束",
+          "sourceText": "end /end/ n.末尾；结束"
+        },
+        {
+          "id": "unit-6-051",
+          "word": "at the end",
+          "speech": "at the end",
+          "phonetic": "",
+          "meaning": "最后；在末尾",
+          "sourceText": "at the end 最后；在末尾"
+        },
+        {
+          "id": "unit-6-052",
+          "word": "storm",
+          "speech": "storm",
+          "phonetic": "stɔːm",
+          "meaning": "n.暴风雨；暴风雪",
+          "sourceText": "storm /stɔːm/ n.暴风雨；暴风雪"
+        },
+        {
+          "id": "unit-6-053",
+          "word": "pour",
+          "speech": "pour",
+          "phonetic": "pɔː(r)",
+          "meaning": "v.倾倒；倒出",
+          "sourceText": "pour /pɔː(r)/ v.倾倒；倒出"
+        },
+        {
+          "id": "unit-6-054",
+          "word": "wind",
+          "speech": "wind",
+          "phonetic": "wɪnd",
+          "meaning": "n.风",
+          "sourceText": "wind /wɪnd/ n.风"
+        },
+        {
+          "id": "unit-6-055",
+          "word": "shout",
+          "speech": "shout",
+          "phonetic": "ʃaʊt",
+          "meaning": "v.&n.喊叫；呼唤",
+          "sourceText": "shout /ʃaʊt/ v.&n.喊叫；呼唤"
+        },
+        {
+          "id": "unit-6-056",
+          "word": "run after",
+          "speech": "run after",
+          "phonetic": "",
+          "meaning": "追逐",
+          "sourceText": "run after 追逐"
+        },
+        {
+          "id": "unit-6-057",
+          "word": "Mount Huangshan",
+          "speech": "Mount Huangshan",
+          "phonetic": "",
+          "meaning": "黄山",
+          "sourceText": "Mount Huangshan 黄山"
+        },
+        {
+          "id": "unit-6-058",
+          "word": "Bright Peak",
+          "speech": "Bright Peak",
+          "phonetic": "",
+          "meaning": "光明顶",
+          "sourceText": "Bright Peak光明顶"
+        }
+      ]
+    },
+    {
+      "id": "unit-7",
+      "label": "Unit 7",
+      "title": "A Day to Remember",
+      "chineseTitle": "难忘的一天",
+      "words": [
+        {
+          "id": "unit-7-001",
+          "word": "meet up",
+          "speech": "meet up",
+          "phonetic": "",
+          "meaning": "碰头；相聚",
+          "sourceText": "meet up 碰头；相聚"
+        },
+        {
+          "id": "unit-7-002",
+          "word": "museum",
+          "speech": "museum",
+          "phonetic": "mjuˈziːəm",
+          "meaning": "n.博物馆",
+          "sourceText": "museum /mjuˈziːəm/ n.博物馆"
+        },
+        {
+          "id": "unit-7-003",
+          "word": "exhibition",
+          "speech": "exhibition",
+          "phonetic": "ˌeksɪˈbɪʃn",
+          "meaning": "n.展览",
+          "sourceText": "exhibition /ˌeksɪˈbɪʃn/ n.展览"
+        },
+        {
+          "id": "unit-7-004",
+          "word": "direction",
+          "speech": "direction",
+          "phonetic": "dəˈrekʃn; daɪˈrekʃn",
+          "meaning": "n.方向",
+          "sourceText": "direction /dəˈrekʃn; daɪˈrekʃn/ n.方向"
+        },
+        {
+          "id": "unit-7-005",
+          "word": "terrible",
+          "speech": "terrible",
+          "phonetic": "ˈterəbl",
+          "meaning": "adj.糟糕的",
+          "sourceText": "terrible /ˈterəbl/ adj.糟糕的"
+        },
+        {
+          "id": "unit-7-006",
+          "word": "trip",
+          "speech": "trip",
+          "phonetic": "trɪp",
+          "meaning": "n.旅行",
+          "sourceText": "trip /trɪp/ n.旅行"
+        },
+        {
+          "id": "unit-7-007",
+          "word": "wastewater",
+          "speech": "wastewater",
+          "phonetic": "ˈweɪstwɔːtə(r)",
+          "meaning": "n.废水",
+          "sourceText": "wastewater /ˈweɪstwɔːtə(r)/ n.废水"
+        },
+        {
+          "id": "unit-7-008",
+          "word": "plant",
+          "speech": "plant",
+          "phonetic": "plɑːnt",
+          "meaning": "n.工厂",
+          "sourceText": "plant /plɑːnt/ n.工厂"
+        },
+        {
+          "id": "unit-7-009",
+          "word": "into",
+          "speech": "into",
+          "phonetic": "ˈɪntuː; ˈɪntə",
+          "meaning": "prep.到……里面；进入",
+          "sourceText": "into /ˈɪntuː; ˈɪntə/ prep.到……里面；进入"
+        },
+        {
+          "id": "unit-7-010",
+          "word": "remove",
+          "speech": "remove",
+          "phonetic": "rɪˈmuːv",
+          "meaning": "v.移开；拿走",
+          "sourceText": "remove /rɪˈmuːv/ v.移开；拿走"
+        },
+        {
+          "id": "unit-7-011",
+          "word": "piece",
+          "speech": "piece",
+          "phonetic": "piːs",
+          "meaning": "n.片；块",
+          "sourceText": "piece /piːs/ n.片；块"
+        },
+        {
+          "id": "unit-7-012",
+          "word": "waste",
+          "speech": "waste",
+          "phonetic": "weɪst",
+          "meaning": "n.废弃物；v.浪费",
+          "sourceText": "waste /weɪst/ n.废弃物；v.浪费"
+        },
+        {
+          "id": "unit-7-013",
+          "word": "machine",
+          "speech": "machine",
+          "phonetic": "məˈʃiːn",
+          "meaning": "n.机器",
+          "sourceText": "machine /məˈʃiːn/ n.机器"
+        },
+        {
+          "id": "unit-7-014",
+          "word": "germ",
+          "speech": "germ",
+          "phonetic": "dʒɜːm",
+          "meaning": "n.微生物；细菌",
+          "sourceText": "germ /dʒɜːm/ n.微生物；细菌"
+        },
+        {
+          "id": "unit-7-015",
+          "word": "step",
+          "speech": "step",
+          "phonetic": "step",
+          "meaning": "n.步骤；脚步",
+          "sourceText": "step /step/ n.步骤；脚步"
+        },
+        {
+          "id": "unit-7-016",
+          "word": "used to",
+          "speech": "used to",
+          "phonetic": "",
+          "meaning": "过去常常（做）",
+          "sourceText": "used to 过去常常（做）"
+        },
+        {
+          "id": "unit-7-017",
+          "word": "realize",
+          "speech": "realize",
+          "phonetic": "ˈriːəlaɪz",
+          "meaning": "v.认识到；实现",
+          "sourceText": "realize /ˈriːəlaɪz/ v.认识到；实现"
+        },
+        {
+          "id": "unit-7-018",
+          "word": "inside",
+          "speech": "inside",
+          "phonetic": "ˌɪnˈsaɪd",
+          "meaning": "prep.在……里面；adv.在里面",
+          "sourceText": "inside /ˌɪnˈsaɪd/ prep.在……里面；adv.在里面"
+        },
+        {
+          "id": "unit-7-019",
+          "word": "go on a trip",
+          "speech": "go on a trip",
+          "phonetic": "",
+          "meaning": "去旅行",
+          "sourceText": "go on a trip 去旅行"
+        },
+        {
+          "id": "unit-7-020",
+          "word": "process",
+          "speech": "process",
+          "phonetic": "ˈprəʊses",
+          "meaning": "n.过程",
+          "sourceText": "process /ˈprəʊses/ n.过程"
+        },
+        {
+          "id": "unit-7-021",
+          "word": "theatre",
+          "speech": "theatre",
+          "phonetic": "ˈθɪətə(r)",
+          "meaning": "n.戏院；剧场；电影院",
+          "sourceText": "theatre /ˈθɪətə(r)/ n.戏院；剧场；电影院"
+        },
+        {
+          "id": "unit-7-022",
+          "word": "factory",
+          "speech": "factory",
+          "phonetic": "ˈfæktri; ˈfæktəri",
+          "meaning": "n.工厂",
+          "sourceText": "factory /ˈfæktri; ˈfæktəri/ n.工厂"
+        },
+        {
+          "id": "unit-7-023",
+          "word": "actor",
+          "speech": "actor",
+          "phonetic": "ˈæktə(r)",
+          "meaning": "n.演员",
+          "sourceText": "actor /ˈæktə(r)/ n.演员"
+        },
+        {
+          "id": "unit-7-024",
+          "word": "gun",
+          "speech": "gun",
+          "phonetic": "ɡʌn",
+          "meaning": "n.枪",
+          "sourceText": "gun /ɡʌn/ n.枪"
+        },
+        {
+          "id": "unit-7-025",
+          "word": "try on",
+          "speech": "try on",
+          "phonetic": "",
+          "meaning": "试穿",
+          "sourceText": "try on 试穿"
+        },
+        {
+          "id": "unit-7-026",
+          "word": "along",
+          "speech": "along",
+          "phonetic": "əˈlɒŋ",
+          "meaning": "prep.沿着；顺着",
+          "sourceText": "along /əˈlɒŋ/ prep.沿着；顺着"
+        },
+        {
+          "id": "unit-7-027",
+          "word": "road",
+          "speech": "road",
+          "phonetic": "rəʊd",
+          "meaning": "n.道路",
+          "sourceText": "road /rəʊd/ n.道路"
+        },
+        {
+          "id": "unit-7-028",
+          "word": "create",
+          "speech": "create",
+          "phonetic": "kriˈeɪt",
+          "meaning": "v.创造",
+          "sourceText": "create /kriˈeɪt/ v.创造"
+        },
+        {
+          "id": "unit-7-029",
+          "word": "record",
+          "speech": "record",
+          "phonetic": "rɪˈkɔːd",
+          "meaning": "v.记录；/ˈrekɔːd/ n.记录",
+          "sourceText": "record /rɪˈkɔːd/ v.记录；/ˈrekɔːd/ n.记录"
+        },
+        {
+          "id": "unit-7-030",
+          "word": "skill",
+          "speech": "skill",
+          "phonetic": "skɪl",
+          "meaning": "n.技能",
+          "sourceText": "skill /skɪl/ n.技能"
+        },
+        {
+          "id": "unit-7-031",
+          "word": "write down",
+          "speech": "write down",
+          "phonetic": "",
+          "meaning": "写下；记下",
+          "sourceText": "write down 写下；记下"
+        },
+        {
+          "id": "unit-7-032",
+          "word": "explore",
+          "speech": "explore",
+          "phonetic": "ɪkˈsplɔː(r)",
+          "meaning": "v.探索",
+          "sourceText": "explore /ɪkˈsplɔː(r)/ v.探索"
+        },
+        {
+          "id": "unit-7-033",
+          "word": "tent",
+          "speech": "tent",
+          "phonetic": "tent",
+          "meaning": "n.帐篷",
+          "sourceText": "tent /tent/ n.帐篷"
+        },
+        {
+          "id": "unit-7-034",
+          "word": "cucumber",
+          "speech": "cucumber",
+          "phonetic": "ˈkjuːkʌmbə(r)",
+          "meaning": "n.黄瓜",
+          "sourceText": "cucumber /ˈkjuːkʌmbə(r)/ n.黄瓜"
+        },
+        {
+          "id": "unit-7-035",
+          "word": "from…to…",
+          "speech": "from, to",
+          "phonetic": "",
+          "meaning": "从……到……",
+          "sourceText": "from…to… 从……到……"
+        },
+        {
+          "id": "unit-7-036",
+          "word": "straight",
+          "speech": "straight",
+          "phonetic": "streɪt",
+          "meaning": "adv.直接；立即；笔直地；adj.直的",
+          "sourceText": "straight /streɪt/ adv.直接；立即；笔直地；adj.直的"
+        },
+        {
+          "id": "unit-7-037",
+          "word": "fill",
+          "speech": "fill",
+          "phonetic": "fɪl",
+          "meaning": "v.装满；盛满",
+          "sourceText": "fill /fɪl/ v.装满；盛满"
+        },
+        {
+          "id": "unit-7-038",
+          "word": "basket",
+          "speech": "basket",
+          "phonetic": "ˈbɑːskɪt",
+          "meaning": "n.篮子；筐",
+          "sourceText": "basket /ˈbɑːskɪt/ n.篮子；筐"
+        },
+        {
+          "id": "unit-7-039",
+          "word": "teach",
+          "speech": "teach",
+          "phonetic": "tiːtʃ",
+          "meaning": "v.（taught /tɔːt/）教",
+          "sourceText": "teach /tiːtʃ/ v.（taught /tɔːt/）教"
+        },
+        {
+          "id": "unit-7-040",
+          "word": "branch",
+          "speech": "branch",
+          "phonetic": "brɑːntʃ",
+          "meaning": "n.分支；树枝",
+          "sourceText": "branch /brɑːntʃ/ n.分支；树枝"
+        },
+        {
+          "id": "unit-7-041",
+          "word": "leaf",
+          "speech": "leaf",
+          "phonetic": "liːf",
+          "meaning": "n.（pl.leaves /liːvz/）树叶",
+          "sourceText": "leaf /liːf/ n.（pl.leaves /liːvz/）树叶"
+        },
+        {
+          "id": "unit-7-042",
+          "word": "finally",
+          "speech": "finally",
+          "phonetic": "ˈfaɪnəli",
+          "meaning": "adv.最后",
+          "sourceText": "finally /ˈfaɪnəli/ adv.最后"
+        },
+        {
+          "id": "unit-7-043",
+          "word": "think of",
+          "speech": "think of",
+          "phonetic": "",
+          "meaning": "考虑；想起",
+          "sourceText": "think of 考虑；想起"
+        },
+        {
+          "id": "unit-7-044",
+          "word": "grain",
+          "speech": "grain",
+          "phonetic": "ɡreɪn",
+          "meaning": "n.谷物；谷粒",
+          "sourceText": "grain /ɡreɪn/ n.谷物；谷粒"
+        },
+        {
+          "id": "unit-7-045",
+          "word": "fresh",
+          "speech": "fresh",
+          "phonetic": "freʃ",
+          "meaning": "adj.新鲜的",
+          "sourceText": "fresh /freʃ/ adj.新鲜的"
+        },
+        {
+          "id": "unit-7-046",
+          "word": "certainly",
+          "speech": "certainly",
+          "phonetic": "ˈsɜːtnli",
+          "meaning": "adv.肯定地",
+          "sourceText": "certainly /ˈsɜːtnli/ adv.肯定地"
+        },
+        {
+          "id": "unit-7-047",
+          "word": "diary",
+          "speech": "diary",
+          "phonetic": "ˈdaɪəri",
+          "meaning": "n.日记；日记本",
+          "sourceText": "diary /ˈdaɪəri/ n.日记；日记本"
+        },
+        {
+          "id": "unit-7-048",
+          "word": "entry",
+          "speech": "entry",
+          "phonetic": "ˈentri",
+          "meaning": "n.（日记的）一则；入口",
+          "sourceText": "entry /ˈentri/ n.（日记的）一则；入口"
+        },
+        {
+          "id": "unit-7-049",
+          "word": "agree",
+          "speech": "agree",
+          "phonetic": "əˈɡriː",
+          "meaning": "v.赞成；同意",
+          "sourceText": "agree /əˈɡriː/ v.赞成；同意"
+        },
+        {
+          "id": "unit-7-050",
+          "word": "agree with",
+          "speech": "agree with",
+          "phonetic": "",
+          "meaning": "赞成；同意",
+          "sourceText": "agree with 赞成；同意"
+        }
+      ]
+    },
+    {
+      "id": "unit-8",
+      "label": "Unit 8",
+      "title": "Once upon a Time",
+      "chineseTitle": "从前",
+      "words": [
+        {
+          "id": "unit-8-001",
+          "word": "upon",
+          "speech": "upon",
+          "phonetic": "əˈpɒn",
+          "meaning": "prep.在……之上",
+          "sourceText": "upon /əˈpɒn/ prep.在……之上"
+        },
+        {
+          "id": "unit-8-002",
+          "word": "once upon a time",
+          "speech": "once upon a time",
+          "phonetic": "",
+          "meaning": "从前；很久以前",
+          "sourceText": "once upon a time 从前；很久以前"
+        },
+        {
+          "id": "unit-8-003",
+          "word": "bite",
+          "speech": "bite",
+          "phonetic": "baɪt",
+          "meaning": "v.（bit /bɪt/）咬；咬伤",
+          "sourceText": "bite /baɪt/ v.（bit /bɪt/）咬；咬伤"
+        },
+        {
+          "id": "unit-8-004",
+          "word": "bite through",
+          "speech": "bite through",
+          "phonetic": "",
+          "meaning": "咬穿",
+          "sourceText": "bite through 咬穿"
+        },
+        {
+          "id": "unit-8-005",
+          "word": "net",
+          "speech": "net",
+          "phonetic": "net",
+          "meaning": "n.网；网状物",
+          "sourceText": "net /net/ n.网；网状物"
+        },
+        {
+          "id": "unit-8-006",
+          "word": "hunter",
+          "speech": "hunter",
+          "phonetic": "ˈhʌntə(r)",
+          "meaning": "n.猎人；搜寻者",
+          "sourceText": "hunter /ˈhʌntə(r)/ n.猎人；搜寻者"
+        },
+        {
+          "id": "unit-8-007",
+          "word": "promise",
+          "speech": "promise",
+          "phonetic": "ˈprɒmɪs",
+          "meaning": "v.承诺；保证；n.承诺；诺言",
+          "sourceText": "promise /ˈprɒmɪs/ v.承诺；保证；n.承诺；诺言"
+        },
+        {
+          "id": "unit-8-008",
+          "word": "long ago",
+          "speech": "long ago",
+          "phonetic": "",
+          "meaning": "很久以前",
+          "sourceText": "long ago 很久以前"
+        },
+        {
+          "id": "unit-8-009",
+          "word": "war",
+          "speech": "war",
+          "phonetic": "wɔː(r)",
+          "meaning": "n.战争",
+          "sourceText": "war /wɔː(r)/ n.战争"
+        },
+        {
+          "id": "unit-8-010",
+          "word": "neighbour",
+          "speech": "neighbour",
+          "phonetic": "ˈneɪbə(r)",
+          "meaning": "n.邻居",
+          "sourceText": "neighbour /ˈneɪbə(r)/ n.邻居"
+        },
+        {
+          "id": "unit-8-011",
+          "word": "wise",
+          "speech": "wise",
+          "phonetic": "waɪz",
+          "meaning": "adj.明智的；高明的",
+          "sourceText": "wise /waɪz/ adj.明智的；高明的"
+        },
+        {
+          "id": "unit-8-012",
+          "word": "emperor",
+          "speech": "emperor",
+          "phonetic": "ˈempərə(r)",
+          "meaning": "n.皇帝",
+          "sourceText": "emperor /ˈempərə(r)/ n.皇帝"
+        },
+        {
+          "id": "unit-8-013",
+          "word": "lie",
+          "speech": "lie",
+          "phonetic": "laɪ",
+          "meaning": "v.撒谎；n.谎言",
+          "sourceText": "lie /laɪ/ v.撒谎；n.谎言"
+        },
+        {
+          "id": "unit-8-014",
+          "word": "pretend",
+          "speech": "pretend",
+          "phonetic": "prɪˈtend",
+          "meaning": "v.假装；伪装",
+          "sourceText": "pretend /prɪˈtend/ v.假装；伪装"
+        },
+        {
+          "id": "unit-8-015",
+          "word": "official",
+          "speech": "official",
+          "phonetic": "əˈfɪʃl",
+          "meaning": "n.官员；高级职员",
+          "sourceText": "official /əˈfɪʃl/ n.官员；高级职员"
+        },
+        {
+          "id": "unit-8-016",
+          "word": "silly",
+          "speech": "silly",
+          "phonetic": "ˈsɪli",
+          "meaning": "adj.愚蠢的；傻的",
+          "sourceText": "silly /ˈsɪli/ adj.愚蠢的；傻的"
+        },
+        {
+          "id": "unit-8-017",
+          "word": "decide",
+          "speech": "decide",
+          "phonetic": "dɪˈsaɪd",
+          "meaning": "v.决定",
+          "sourceText": "decide /dɪˈsaɪd/ v.决定"
+        },
+        {
+          "id": "unit-8-018",
+          "word": "praise",
+          "speech": "praise",
+          "phonetic": "preɪz",
+          "meaning": "v.&n.赞美；表扬",
+          "sourceText": "praise /preɪz/ v.&n.赞美；表扬"
+        },
+        {
+          "id": "unit-8-019",
+          "word": "afraid",
+          "speech": "afraid",
+          "phonetic": "əˈfreɪd",
+          "meaning": "adj.害怕的；担心的",
+          "sourceText": "afraid /əˈfreɪd/ adj.害怕的；担心的"
+        },
+        {
+          "id": "unit-8-020",
+          "word": "suddenly",
+          "speech": "suddenly",
+          "phonetic": "ˈsʌdənli",
+          "meaning": "adv.突然地；出乎意料地",
+          "sourceText": "suddenly /ˈsʌdənli/ adv.突然地；出乎意料地"
+        },
+        {
+          "id": "unit-8-021",
+          "word": "at first",
+          "speech": "at first",
+          "phonetic": "",
+          "meaning": "起初；最初",
+          "sourceText": "at first 起初；最初"
+        },
+        {
+          "id": "unit-8-022",
+          "word": "truth",
+          "speech": "truth",
+          "phonetic": "truːθ",
+          "meaning": "n.真相；事实",
+          "sourceText": "truth /truːθ/ n.真相；事实"
+        },
+        {
+          "id": "unit-8-023",
+          "word": "tell the truth",
+          "speech": "tell the truth",
+          "phonetic": "",
+          "meaning": "说实话",
+          "sourceText": "tell the truth 说实话"
+        },
+        {
+          "id": "unit-8-024",
+          "word": "make money",
+          "speech": "make money",
+          "phonetic": "",
+          "meaning": "赚钱",
+          "sourceText": "make money 赚钱"
+        },
+        {
+          "id": "unit-8-025",
+          "word": "true",
+          "speech": "true",
+          "phonetic": "truː",
+          "meaning": "adj.符合事实的；真正的",
+          "sourceText": "true /truː/ adj.符合事实的；真正的"
+        },
+        {
+          "id": "unit-8-026",
+          "word": "hate",
+          "speech": "hate",
+          "phonetic": "heɪt",
+          "meaning": "v.不喜欢；厌恶；讨厌",
+          "sourceText": "hate /heɪt/ v.不喜欢；厌恶；讨厌"
+        },
+        {
+          "id": "unit-8-027",
+          "word": "get out",
+          "speech": "get out",
+          "phonetic": "",
+          "meaning": "逃脱；离开",
+          "sourceText": "get out 逃脱；离开"
+        },
+        {
+          "id": "unit-8-028",
+          "word": "king",
+          "speech": "king",
+          "phonetic": "kɪŋ",
+          "meaning": "n.君主；国王",
+          "sourceText": "king /kɪŋ/ n.君主；国王"
+        },
+        {
+          "id": "unit-8-029",
+          "word": "artist",
+          "speech": "artist",
+          "phonetic": "ˈɑːtɪst",
+          "meaning": "n.美术家；艺术家",
+          "sourceText": "artist /ˈɑːtɪst/ n.美术家；艺术家"
+        },
+        {
+          "id": "unit-8-030",
+          "word": "quickly",
+          "speech": "quickly",
+          "phonetic": "ˈkwɪkli",
+          "meaning": "adv.快速地；很快",
+          "sourceText": "quickly /ˈkwɪkli/ adv.快速地；很快"
+        },
+        {
+          "id": "unit-8-031",
+          "word": "smile",
+          "speech": "smile",
+          "phonetic": "smaɪl",
+          "meaning": "v.微笑；n.微笑；笑容",
+          "sourceText": "smile /smaɪl/ v.微笑；n.微笑；笑容"
+        },
+        {
+          "id": "unit-8-032",
+          "word": "all over",
+          "speech": "all over",
+          "phonetic": "",
+          "meaning": "到处；遍及",
+          "sourceText": "all over 到处；遍及"
+        },
+        {
+          "id": "unit-8-033",
+          "word": "ugly",
+          "speech": "ugly",
+          "phonetic": "ˈʌɡli",
+          "meaning": "adj.丑陋的；难看的",
+          "sourceText": "ugly /ˈʌɡli/ adj.丑陋的；难看的"
+        },
+        {
+          "id": "unit-8-034",
+          "word": "duckling",
+          "speech": "duckling",
+          "phonetic": "ˈdʌklɪŋ",
+          "meaning": "n.小鸭子",
+          "sourceText": "duckling /ˈdʌklɪŋ/ n.小鸭子"
+        },
+        {
+          "id": "unit-8-035",
+          "word": "real",
+          "speech": "real",
+          "phonetic": "ˈriːəl",
+          "meaning": "adj.真的；真正的",
+          "sourceText": "real /ˈriːəl/ adj.真的；真正的"
+        },
+        {
+          "id": "unit-8-036",
+          "word": "laugh at",
+          "speech": "laugh at",
+          "phonetic": "",
+          "meaning": "嘲笑",
+          "sourceText": "laugh at 嘲笑"
+        },
+        {
+          "id": "unit-8-037",
+          "word": "go away",
+          "speech": "go away",
+          "phonetic": "",
+          "meaning": "走开",
+          "sourceText": "go away 走开"
+        },
+        {
+          "id": "unit-8-038",
+          "word": "search",
+          "speech": "search",
+          "phonetic": "sɜːtʃ",
+          "meaning": "v.寻找；搜寻",
+          "sourceText": "search /sɜːtʃ/ v.寻找；搜寻"
+        },
+        {
+          "id": "unit-8-039",
+          "word": "search for",
+          "speech": "search for",
+          "phonetic": "",
+          "meaning": "寻找",
+          "sourceText": "search for 寻找"
+        },
+        {
+          "id": "unit-8-040",
+          "word": "hen",
+          "speech": "hen",
+          "phonetic": "hen",
+          "meaning": "n.母鸡",
+          "sourceText": "hen /hen/ n.母鸡"
+        },
+        {
+          "id": "unit-8-041",
+          "word": "hopefully",
+          "speech": "hopefully",
+          "phonetic": "ˈhəʊpfəli",
+          "meaning": "adv.有希望地",
+          "sourceText": "hopefully /ˈhəʊpfəli/ adv.有希望地"
+        },
+        {
+          "id": "unit-8-042",
+          "word": "purr",
+          "speech": "purr",
+          "phonetic": "pɜː(r)",
+          "meaning": "v.（猫愉快时）发出呜呜声",
+          "sourceText": "purr /pɜː(r)/ v.（猫愉快时）发出呜呜声"
+        },
+        {
+          "id": "unit-8-043",
+          "word": "lay",
+          "speech": "lay",
+          "phonetic": "leɪ",
+          "meaning": "v.（laid /leɪd/）下（蛋）；放置；搁",
+          "sourceText": "lay /leɪ/ v.（laid /leɪd/）下（蛋）；放置；搁"
+        },
+        {
+          "id": "unit-8-044",
+          "word": "swan",
+          "speech": "swan",
+          "phonetic": "swɒn",
+          "meaning": "n.天鹅",
+          "sourceText": "swan /swɒn/ n.天鹅"
+        },
+        {
+          "id": "unit-8-045",
+          "word": "feather",
+          "speech": "feather",
+          "phonetic": "ˈfeðə(r)",
+          "meaning": "n.羽毛",
+          "sourceText": "feather /ˈfeðə(r)/ n.羽毛"
+        },
+        {
+          "id": "unit-8-046",
+          "word": "to sb's surprise",
+          "speech": "to somebody's surprise",
+          "phonetic": "",
+          "meaning": "令某人惊讶的是",
+          "sourceText": "to sb's surprise 令某人惊讶的是"
+        },
+        {
+          "id": "unit-8-047",
+          "word": "size",
+          "speech": "size",
+          "phonetic": "saɪz",
+          "meaning": "n.尺寸；尺码",
+          "sourceText": "size /saɪz/ n.尺寸；尺码"
+        },
+        {
+          "id": "unit-8-048",
+          "word": "dislike",
+          "speech": "dislike",
+          "phonetic": "dɪsˈlaɪk",
+          "meaning": "v.不喜欢；厌恶；n.不喜欢（的事物）；反感",
+          "sourceText": "dislike /dɪsˈlaɪk/ v.不喜欢；厌恶；n.不喜欢（的事物）；反感"
+        },
+        {
+          "id": "unit-8-049",
+          "word": "only if",
+          "speech": "only if",
+          "phonetic": "",
+          "meaning": "只有",
+          "sourceText": "only if 只有"
+        },
+        {
+          "id": "unit-8-050",
+          "word": "fisherman",
+          "speech": "fisherman",
+          "phonetic": "ˈfɪʃəmən",
+          "meaning": "n.（pl. fishermen /ˈfɪʃəmən/）渔夫",
+          "sourceText": "fisherman /ˈfɪʃəmən/ n.（pl. fishermen /ˈfɪʃəmən/）渔夫"
+        },
+        {
+          "id": "unit-8-051",
+          "word": "fishing",
+          "speech": "fishing",
+          "phonetic": "ˈfɪshɪŋ",
+          "meaning": "n.钓鱼；捕鱼",
+          "sourceText": "fishing /ˈfɪshɪŋ/ n.钓鱼；捕鱼"
+        },
+        {
+          "id": "unit-8-052",
+          "word": "come out",
+          "speech": "come out",
+          "phonetic": "",
+          "meaning": "出现；盛开",
+          "sourceText": "come out 出现；盛开"
+        },
+        {
+          "id": "unit-8-053",
+          "word": "genie",
+          "speech": "genie",
+          "phonetic": "ˈdʒiːni",
+          "meaning": "n.妖怪；鬼",
+          "sourceText": "genie /ˈdʒiːni/ n.妖怪；鬼"
+        },
+        {
+          "id": "unit-8-054",
+          "word": "die",
+          "speech": "die",
+          "phonetic": "daɪ",
+          "meaning": "v.死亡；消失",
+          "sourceText": "die /daɪ/ v.死亡；消失"
+        },
+        {
+          "id": "unit-8-055",
+          "word": "make a promise",
+          "speech": "make a promise",
+          "phonetic": "",
+          "meaning": "许下诺言",
+          "sourceText": "make a promise 许下诺言"
+        },
+        {
+          "id": "unit-8-056",
+          "word": "someone",
+          "speech": "someone",
+          "phonetic": "ˈsʌmwʌn",
+          "meaning": "pron.某人；有人",
+          "sourceText": "someone /ˈsʌmwʌn/ pron.某人；有人"
+        },
+        {
+          "id": "unit-8-057",
+          "word": "set",
+          "speech": "set",
+          "phonetic": "set",
+          "meaning": "v.使处于某种状况；使开始",
+          "sourceText": "set /set/ v.使处于某种状况；使开始"
+        },
+        {
+          "id": "unit-8-058",
+          "word": "set…free",
+          "speech": "set, free",
+          "phonetic": "",
+          "meaning": "释放",
+          "sourceText": "set…free 释放"
+        },
+        {
+          "id": "unit-8-059",
+          "word": "rich",
+          "speech": "rich",
+          "phonetic": "rɪtch",
+          "meaning": "adj.富有的；富含……的",
+          "sourceText": "rich /rɪtch/ adj.富有的；富含……的"
+        },
+        {
+          "id": "unit-8-060",
+          "word": "powerful",
+          "speech": "powerful",
+          "phonetic": "ˈpaʊəfl",
+          "meaning": "adj.强大的；有影响力的",
+          "sourceText": "powerful /ˈpaʊəfl/ adj.强大的；有影响力的"
+        },
+        {
+          "id": "unit-8-061",
+          "word": "anyone",
+          "speech": "anyone",
+          "phonetic": "ˈeniwʌn",
+          "meaning": "pron.任何人；某个人",
+          "sourceText": "anyone /ˈeniwʌn/ pron.任何人；某个人"
+        },
+        {
+          "id": "unit-8-062",
+          "word": "ugly",
+          "speech": "ugly",
+          "phonetic": "ˈʌɡli",
+          "meaning": "adj.丑陋的；难看的",
+          "sourceText": "ugly /ˈʌɡli/ adj.丑陋的；难看的"
+        },
+        {
+          "id": "unit-8-063",
+          "word": "instead of",
+          "speech": "instead of",
+          "phonetic": "",
+          "meaning": "而不是；代替",
+          "sourceText": "instead of 而不是；代替"
+        },
+        {
+          "id": "unit-8-064",
+          "word": "succeed in doing sth",
+          "speech": "succeed in doing something",
+          "phonetic": "",
+          "meaning": "成功做成某事",
+          "sourceText": "succeed in doing sth 成功做成某事"
+        },
+        {
+          "id": "unit-8-065",
+          "word": "himself",
+          "speech": "himself",
+          "phonetic": "hɪmˈself",
+          "meaning": "pron.他自己,他本人",
+          "sourceText": "himself /hɪmˈself/ pron.他自己,他本人"
+        },
+        {
+          "id": "unit-8-066",
+          "word": "in the end",
+          "speech": "in the end",
+          "phonetic": "",
+          "meaning": "最后；终究",
+          "sourceText": "in the end最后，终究"
+        }
+      ]
+    }
+  ]
+};
+
+</script>
+    <script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "english-dictation-helper-v3";
+  const DEFAULT_BANK = window.DEFAULT_WORD_BANK || { schemaVersion: 1, units: [] };
+  const DEFAULT_SETTINGS = {
+    selectedUnits: ["unit-1"],
+    mode: "sequence",
+    rate: 0.8,
+    repeat: 1,
+    voiceURI: "",
+  };
+  const ACCENT_PRESETS = [
+    { value: "", label: "自动选择（优先英式）", lang: "en-GB" },
+    { value: "accent:en-GB", label: "英式英语 · British", lang: "en-GB" },
+    { value: "accent:en-US", label: "美式英语 · American", lang: "en-US" },
+    { value: "accent:en-AU", label: "澳式英语 · Australian", lang: "en-AU" },
+    { value: "accent:en-CA", label: "加拿大英语 · Canadian", lang: "en-CA" },
+  ];
+
+  let state = loadState();
+  let currentReviewId = null;
+  let availableVoices = [];
+  let toastTimer = null;
+  let speechToken = 0;
+
+  const elements = {
+    views: Array.from(document.querySelectorAll(".view")),
+    topbar: document.querySelector(".topbar"),
+    bottomNav: document.getElementById("bottomNav"),
+    navButtons: Array.from(document.querySelectorAll(".bottom-nav [data-open-view]")),
+    brandHomeButton: document.getElementById("brandHomeButton"),
+    saveIndicator: document.getElementById("saveIndicator"),
+    unitGrid: document.getElementById("unitGrid"),
+    selectionSummary: document.getElementById("selectionSummary"),
+    selectAllUnits: document.getElementById("selectAllUnits"),
+    clearUnits: document.getElementById("clearUnits"),
+    startButton: document.getElementById("startButton"),
+    testVoiceButton: document.getElementById("testVoiceButton"),
+    speechRate: document.getElementById("speechRate"),
+    repeatCount: document.getElementById("repeatCount"),
+    voiceSelect: document.getElementById("voiceSelect"),
+    resumeCard: document.getElementById("resumeCard"),
+    resumeDescription: document.getElementById("resumeDescription"),
+    resumeButton: document.getElementById("resumeButton"),
+    pauseButton: document.getElementById("pauseButton"),
+    endButton: document.getElementById("endButton"),
+    replayButton: document.getElementById("replayButton"),
+    nextButton: document.getElementById("nextButton"),
+    dictationUnits: document.getElementById("dictationUnits"),
+    dictationProgressText: document.getElementById("dictationProgressText"),
+    dictationProgressBar: document.getElementById("dictationProgressBar"),
+    speakingStatus: document.getElementById("speakingStatus"),
+    reviewCompletedCount: document.getElementById("reviewCompletedCount"),
+    reviewGradedCount: document.getElementById("reviewGradedCount"),
+    reviewAccuracy: document.getElementById("reviewAccuracy"),
+    reviewMeta: document.getElementById("reviewMeta"),
+    answerList: document.getElementById("answerList"),
+    exportReviewButton: document.getElementById("exportReviewButton"),
+    historyList: document.getElementById("historyList"),
+    exportBackupButton: document.getElementById("exportBackupButton"),
+    backupFileInput: document.getElementById("backupFileInput"),
+    wordBankFileInput: document.getElementById("wordBankFileInput"),
+    downloadTemplateButton: document.getElementById("downloadTemplateButton"),
+    exportWordBankButton: document.getElementById("exportWordBankButton"),
+    bankSummary: document.getElementById("bankSummary"),
+    customUnitList: document.getElementById("customUnitList"),
+    clearDataButton: document.getElementById("clearDataButton"),
+    finishModal: document.getElementById("finishModal"),
+    finishModalDescription: document.getElementById("finishModalDescription"),
+    cancelFinishButton: document.getElementById("cancelFinishButton"),
+    confirmFinishButton: document.getElementById("confirmFinishButton"),
+    toast: document.getElementById("toast"),
+  };
+
+  function createInitialState() {
+    return {
+      schemaVersion: 2,
+      settings: { ...DEFAULT_SETTINGS },
+      customUnits: [],
+      activeSession: null,
+      history: [],
+    };
+  }
+
+  function loadState() {
+    const fallback = createInitialState();
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return fallback;
+      const parsed = JSON.parse(raw);
+      return {
+        schemaVersion: 2,
+        settings: { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) },
+        customUnits: Array.isArray(parsed.customUnits) ? parsed.customUnits : [],
+        activeSession: parsed.activeSession || null,
+        history: Array.isArray(parsed.history) ? parsed.history : [],
+      };
+    } catch (error) {
+      console.warn("读取本地记录失败，将使用空白记录。", error);
+      return fallback;
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      elements.saveIndicator.textContent = "已自动保存";
+      elements.saveIndicator.style.color = "";
+    } catch (error) {
+      elements.saveIndicator.textContent = "保存失败，请导出备份";
+      elements.saveIndicator.style.color = "#b4453e";
+      console.error("保存失败", error);
+    }
+  }
+
+  function getAllUnits() {
+    const units = [...(DEFAULT_BANK.units || [])];
+    const knownIds = new Set(units.map((unit) => unit.id));
+    for (const unit of state.customUnits) {
+      if (knownIds.has(unit.id)) {
+        const index = units.findIndex((item) => item.id === unit.id);
+        units[index] = unit;
+      } else {
+        units.push(unit);
+        knownIds.add(unit.id);
+      }
+    }
+    return units;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function formatDate(isoString) {
+    if (!isoString) return "时间未知";
+    const date = new Date(isoString);
+    return new Intl.DateTimeFormat("zh-CN", {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(date);
+  }
+
+  function createId(prefix) {
+    const random = Math.random().toString(36).slice(2, 8);
+    return `${prefix}-${Date.now()}-${random}`;
+  }
+
+  function shuffle(items) {
+    const result = [...items];
+    for (let index = result.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
+    }
+    return result;
+  }
+
+  function showToast(message) {
+    window.clearTimeout(toastTimer);
+    elements.toast.textContent = message;
+    elements.toast.classList.add("is-visible");
+    toastTimer = window.setTimeout(() => {
+      elements.toast.classList.remove("is-visible");
+    }, 2500);
+  }
+
+  function setView(viewName) {
+    stopSpeech();
+    const viewId = `${viewName}View`;
+    elements.views.forEach((view) => {
+      view.classList.toggle("is-active", view.id === viewId);
+    });
+
+    const isDictation = viewName === "dictation";
+    document.body.classList.toggle("dictation-mode", isDictation);
+    elements.bottomNav.classList.toggle("is-hidden", isDictation);
+
+    elements.navButtons.forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.openView === viewName);
+    });
+
+    if (viewName === "home") renderHome();
+    if (viewName === "history") renderHistory();
+    if (viewName === "bank") renderBank();
+    if (viewName === "review") renderReview();
+    if (viewName === "dictation") renderDictation();
+
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function renderHome() {
+    renderUnitGrid();
+    applySettingsToControls();
+
+    if (state.activeSession && Array.isArray(state.activeSession.order)) {
+      const session = state.activeSession;
+      elements.resumeCard.classList.remove("is-hidden");
+      elements.resumeDescription.textContent =
+        `${session.unitLabels.join("、")} · ` +
+        `当前第 ${session.cursor + 1} / ${session.order.length} 个`;
+    } else {
+      elements.resumeCard.classList.add("is-hidden");
+    }
+  }
+
+  function renderUnitGrid() {
+    const units = getAllUnits();
+    const validIds = new Set(units.map((unit) => unit.id));
+    state.settings.selectedUnits = state.settings.selectedUnits.filter((id) => validIds.has(id));
+
+    elements.unitGrid.innerHTML = units
+      .map((unit) => {
+        const checked = state.settings.selectedUnits.includes(unit.id) ? "checked" : "";
+        const words = Array.isArray(unit.words) ? unit.words.length : 0;
+        return `
+          <label class="unit-option">
+            <input type="checkbox" value="${escapeHtml(unit.id)}" ${checked} />
+            <span class="unit-card">
+              <span>
+                <strong>${escapeHtml(unit.label || unit.id)}</strong>
+                <small>${escapeHtml(unit.title || "")} · ${escapeHtml(unit.chineseTitle || "")}</small>
+              </span>
+              <em>${words} 个词</em>
+            </span>
+          </label>
+        `;
+      })
+      .join("");
+
+    updateSelectionSummary();
+  }
+
+  function updateSelectionSummary() {
+    const units = getAllUnits().filter((unit) =>
+      state.settings.selectedUnits.includes(unit.id),
+    );
+    const count = units.reduce((sum, unit) => sum + (unit.words?.length || 0), 0);
+    elements.selectionSummary.textContent = units.length
+      ? `已选 ${units.length} 个单元，共 ${count} 个词`
+      : "请选择至少一个单元";
+    elements.startButton.disabled = units.length === 0;
+  }
+
+  function applySettingsToControls() {
+    const modeInput = document.querySelector(
+      `input[name="dictationMode"][value="${state.settings.mode}"]`,
+    );
+    if (modeInput) modeInput.checked = true;
+    elements.speechRate.value = String(state.settings.rate);
+    elements.repeatCount.value = String(state.settings.repeat);
+    elements.voiceSelect.value = state.settings.voiceURI || "";
+  }
+
+  function readSettingsFromControls() {
+    const modeInput = document.querySelector('input[name="dictationMode"]:checked');
+    state.settings.mode = modeInput?.value === "random" ? "random" : "sequence";
+    state.settings.rate = Number(elements.speechRate.value) || 0.8;
+    state.settings.repeat = Math.max(1, Math.min(3, Number(elements.repeatCount.value) || 1));
+    state.settings.voiceURI = elements.voiceSelect.value || "";
+    saveState();
+  }
+
+  function startSession() {
+    readSettingsFromControls();
+    const selectedUnits = getAllUnits().filter((unit) =>
+      state.settings.selectedUnits.includes(unit.id),
+    );
+
+    if (!selectedUnits.length) {
+      showToast("请先选择至少一个单元");
+      return;
+    }
+
+    let order = selectedUnits.flatMap((unit) =>
+      (unit.words || []).map((word) => ({
+        id: word.id || createId("word"),
+        unitId: unit.id,
+        unitLabel: unit.label || unit.id,
+        word: word.word,
+        speech: word.speech || word.word,
+        phonetic: word.phonetic || "",
+        meaning: word.meaning || "",
+      })),
+    );
+
+    if (state.settings.mode === "random") order = shuffle(order);
+
+    state.activeSession = {
+      id: createId("session"),
+      startedAt: new Date().toISOString(),
+      unitIds: selectedUnits.map((unit) => unit.id),
+      unitLabels: selectedUnits.map((unit) => unit.label || unit.id),
+      mode: state.settings.mode,
+      rate: state.settings.rate,
+      repeat: state.settings.repeat,
+      voiceURI: state.settings.voiceURI,
+      cursor: 0,
+      playedCount: order.length ? 1 : 0,
+      order,
+    };
+    saveState();
+    setView("dictation");
+    window.setTimeout(playCurrentWord, 160);
+  }
+
+  function resumeSession() {
+    if (!state.activeSession) return;
+    setView("dictation");
+    window.setTimeout(playCurrentWord, 160);
+  }
+
+  function renderDictation() {
+    const session = state.activeSession;
+    if (!session || !session.order.length) {
+      setView("home");
+      return;
+    }
+
+    const current = session.cursor + 1;
+    const total = session.order.length;
+    elements.dictationUnits.textContent = session.unitLabels.join(" + ");
+    elements.dictationProgressText.textContent = `${current} / ${total}`;
+    elements.dictationProgressBar.style.width = `${(current / total) * 100}%`;
+    elements.nextButton.innerHTML =
+      current === total
+        ? '完成听写 <span aria-hidden="true">✓</span>'
+        : '下一个单词 <span aria-hidden="true">→</span>';
+    elements.speakingStatus.textContent = "点击下方按钮可以重听当前单词";
+  }
+
+  function getAccentLanguage(selection) {
+    const preset = ACCENT_PRESETS.find((item) => item.value === selection);
+    return preset?.lang || "";
+  }
+
+  function getSelectedVoice(selection) {
+    const accentLanguage = getAccentLanguage(selection);
+    if (selection.startsWith("accent:") && accentLanguage) {
+      return (
+        availableVoices.find(
+          (voice) => voice.lang.toLowerCase() === accentLanguage.toLowerCase(),
+        ) || null
+      );
+    }
+    if (selection) {
+      const selected = availableVoices.find((voice) => voice.voiceURI === selection);
+      if (selected) return selected;
+    }
+    return (
+      availableVoices.find((voice) => /^en-GB/i.test(voice.lang)) ||
+      availableVoices.find((voice) => /^en/i.test(voice.lang)) ||
+      null
+    );
+  }
+
+  function speak(text, options = {}) {
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+      showToast("当前浏览器不支持语音朗读，请换用 Chrome、Edge 或 Safari");
+      return;
+    }
+
+    stopSpeech();
+    const token = speechToken;
+    const repeat = Math.max(1, Math.min(3, Number(options.repeat) || 1));
+    const rate = Number(options.rate) || 0.8;
+    const voiceSelection = options.voiceURI || "";
+    const voice = getSelectedVoice(voiceSelection);
+    const language = getAccentLanguage(voiceSelection) || voice?.lang || "en-GB";
+    let completed = 0;
+
+    elements.speakingStatus.textContent = "正在播放发音…";
+
+    const run = () => {
+      if (token !== speechToken) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = language;
+      utterance.rate = rate;
+      utterance.pitch = 1;
+      if (voice) utterance.voice = voice;
+      utterance.onend = () => {
+        if (token !== speechToken) return;
+        completed += 1;
+        if (completed < repeat) {
+          window.setTimeout(run, 620);
+        } else {
+          elements.speakingStatus.textContent = "播放完成，可以书写或进入下一个";
+        }
+      };
+      utterance.onerror = (event) => {
+        if (event.error !== "canceled" && event.error !== "interrupted") {
+          elements.speakingStatus.textContent = "播放失败，请检查声音设置后重试";
+        }
+      };
+      window.speechSynthesis.speak(utterance);
+    };
+
+    run();
+  }
+
+  function stopSpeech() {
+    speechToken += 1;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }
+
+  function playCurrentWord() {
+    const session = state.activeSession;
+    if (!session) return;
+    const item = session.order[session.cursor];
+    if (!item) return;
+    speak(item.speech || item.word, {
+      rate: session.rate,
+      repeat: session.repeat,
+      voiceURI: session.voiceURI,
+    });
+  }
+
+  function goToNextWord() {
+    const session = state.activeSession;
+    if (!session) return;
+    stopSpeech();
+
+    if (session.cursor >= session.order.length - 1) {
+      finishSession("completed");
+      return;
+    }
+
+    session.cursor += 1;
+    session.playedCount = Math.max(session.playedCount, session.cursor + 1);
+    saveState();
+    renderDictation();
+    window.setTimeout(playCurrentWord, 100);
+  }
+
+  function pauseSession() {
+    stopSpeech();
+    saveState();
+    setView("home");
+    showToast("进度已保存，稍后可继续");
+  }
+
+  function requestEarlyFinish() {
+    const session = state.activeSession;
+    if (!session) return;
+    const remaining = Math.max(0, session.order.length - session.playedCount);
+    elements.finishModalDescription.textContent = remaining
+      ? `还有 ${remaining} 个词没有听写。确认结束后将显示完整答案表，并标出未听写的词。`
+      : "确认结束本次听写并显示答案吗？";
+    elements.finishModal.classList.remove("is-hidden");
+    elements.confirmFinishButton.focus();
+  }
+
+  function closeFinishModal() {
+    elements.finishModal.classList.add("is-hidden");
+  }
+
+  function finishSession(status) {
+    const session = state.activeSession;
+    if (!session) return;
+    stopSpeech();
+
+    const record = {
+      id: createId("record"),
+      sessionId: session.id,
+      startedAt: session.startedAt,
+      endedAt: new Date().toISOString(),
+      status,
+      mode: session.mode,
+      unitLabels: session.unitLabels,
+      playedCount: Math.min(session.playedCount, session.order.length),
+      words: session.order,
+      grades: {},
+    };
+
+    state.history.unshift(record);
+    state.activeSession = null;
+    currentReviewId = record.id;
+    saveState();
+    setView("review");
+  }
+
+  function getCurrentReview() {
+    if (!currentReviewId && state.history.length) currentReviewId = state.history[0].id;
+    return state.history.find((record) => record.id === currentReviewId) || null;
+  }
+
+  function getGradeStats(record) {
+    const grades = Object.values(record.grades || {});
+    const correct = grades.filter((grade) => grade === "correct").length;
+    const wrong = grades.filter((grade) => grade === "wrong").length;
+    const graded = correct + wrong;
+    return {
+      correct,
+      wrong,
+      graded,
+      accuracy: graded ? Math.round((correct / graded) * 100) : null,
+    };
+  }
+
+  function renderReview() {
+    const record = getCurrentReview();
+    if (!record) {
+      setView("history");
+      return;
+    }
+
+    const stats = getGradeStats(record);
+    elements.reviewCompletedCount.textContent = `${record.playedCount} / ${record.words.length}`;
+    elements.reviewGradedCount.textContent = String(stats.graded);
+    elements.reviewAccuracy.textContent =
+      stats.accuracy === null ? "—" : `${stats.accuracy}%`;
+    elements.reviewMeta.textContent =
+      `${record.unitLabels.join(" + ")} · ` +
+      `${record.mode === "random" ? "随机顺序" : "课本顺序"} · ` +
+      formatDate(record.endedAt);
+
+    elements.answerList.innerHTML = record.words
+      .map((item, index) => {
+        const heard = index < record.playedCount;
+        const grade = record.grades?.[item.id] || "";
+        return `
+          <article class="answer-row ${heard ? "" : "is-unheard"}" data-word-id="${escapeHtml(item.id)}">
+            <span class="answer-number">${index + 1}</span>
+            <div class="answer-content">
+              <div class="answer-wordline">
+                <strong>${escapeHtml(item.word)}</strong>
+                ${item.phonetic ? `<span>/${escapeHtml(item.phonetic)}/</span>` : ""}
+              </div>
+              <p class="answer-meaning">${escapeHtml(item.meaning)}</p>
+              <div class="answer-meta">
+                <span class="heard-state">${heard ? "已听写" : "提前结束 · 未听写"}</span>
+                <div class="grade-control" aria-label="批改结果">
+                  <button type="button" data-grade="correct" class="${grade === "correct" ? "is-active" : ""}">正确</button>
+                  <button type="button" data-grade="wrong" class="${grade === "wrong" ? "is-active" : ""}">错误</button>
+                  <button type="button" data-grade="clear">未批</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+  }
+
+  function updateGrade(wordId, grade) {
+    const record = getCurrentReview();
+    if (!record) return;
+    record.grades ||= {};
+    if (grade === "clear") {
+      delete record.grades[wordId];
+    } else {
+      record.grades[wordId] = grade;
+    }
+    saveState();
+    renderReview();
+  }
+
+  function renderHistory() {
+    if (!state.history.length) {
+      elements.historyList.innerHTML = `
+        <div class="empty-state">
+          <strong>还没有听写记录</strong>
+          完成第一次听写后，答案顺序和批改结果会保存在这里。
+        </div>
+      `;
+      return;
+    }
+
+    elements.historyList.innerHTML = state.history
+      .map((record) => {
+        const stats = getGradeStats(record);
+        const score =
+          stats.accuracy === null ? "尚未批改" : `正确率 ${stats.accuracy}%`;
+        return `
+          <article class="history-card" data-record-id="${escapeHtml(record.id)}">
+            <div class="history-card-top">
+              <div>
+                <h3>${escapeHtml(record.unitLabels.join(" + "))}</h3>
+                <p>${formatDate(record.endedAt)} · ${record.mode === "random" ? "随机" : "顺序"}听写</p>
+              </div>
+              <span class="history-score">${score}</span>
+            </div>
+            <div class="history-card-bottom">
+              <span>已听 ${record.playedCount} / ${record.words.length} · 已批 ${stats.graded}</span>
+              <div class="inline-actions">
+                <button class="text-button" type="button" data-history-action="view">查看答案</button>
+                <button class="text-button" type="button" data-history-action="delete">删除</button>
+              </div>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+  }
+
+  function renderBank() {
+    const allUnits = getAllUnits();
+    const wordCount = allUnits.reduce((sum, unit) => sum + (unit.words?.length || 0), 0);
+    elements.bankSummary.textContent = `${allUnits.length} 个单元 · ${wordCount} 个词`;
+
+    if (!state.customUnits.length) {
+      elements.customUnitList.innerHTML = `
+        <div class="empty-state">
+          <strong>当前只有内置词库</strong>
+          已包含七年级下册 Unit 1—Unit 8。以后导入的新单元会显示在这里。
+        </div>
+      `;
+      return;
+    }
+
+    elements.customUnitList.innerHTML = state.customUnits
+      .map(
+        (unit) => `
+          <div class="custom-unit-row" data-unit-id="${escapeHtml(unit.id)}">
+            <div>
+              <strong>${escapeHtml(unit.label)} · ${escapeHtml(unit.title || "")}</strong>
+              <small>${unit.words.length} 个词</small>
+            </div>
+            <button class="text-button" data-remove-unit type="button">删除</button>
+          </div>
+        `,
+      )
+      .join("");
+  }
+
+  function downloadFile(filename, content, type) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function exportBackup() {
+    const payload = {
+      app: "听见单词",
+      exportedAt: new Date().toISOString(),
+      state,
+    };
+    downloadFile(
+      `英语听写备份-${new Date().toISOString().slice(0, 10)}.json`,
+      JSON.stringify(payload, null, 2),
+      "application/json;charset=utf-8",
+    );
+    showToast("完整备份已导出");
+  }
+
+  function exportCurrentWordBank() {
+    const payload = {
+      schemaVersion: 1,
+      source: "听见单词导出",
+      units: getAllUnits(),
+    };
+    downloadFile(
+      `英语听写词库-${new Date().toISOString().slice(0, 10)}.json`,
+      JSON.stringify(payload, null, 2),
+      "application/json;charset=utf-8",
+    );
+    showToast("当前词库已导出");
+  }
+
+  function downloadWordBankTemplate() {
+    const template = {
+      schemaVersion: 1,
+      source: "自定义单词表",
+      units: [
+        {
+          label: "Unit 9",
+          title: "示例单元标题",
+          chineseTitle: "示例中文标题",
+          words: [
+            {
+              word: "example",
+              speech: "example",
+              phonetic: "ɪɡˈzɑːmpl",
+              meaning: "n. 例子",
+            },
+            {
+              word: "look forward to",
+              speech: "look forward to",
+              phonetic: "",
+              meaning: "期待",
+            },
+          ],
+        },
+      ],
+    };
+    downloadFile(
+      "新词库导入模板.json",
+      JSON.stringify(template, null, 2),
+      "application/json;charset=utf-8",
+    );
+    showToast("词库模板已下载");
+  }
+
+  function exportReview() {
+    const record = getCurrentReview();
+    if (!record) return;
+    const lines = [
+      "序号\t听写状态\t单词\t音标\t中文意思\t批改结果",
+      ...record.words.map((item, index) => {
+        const heard = index < record.playedCount ? "已听写" : "未听写";
+        const grade = record.grades?.[item.id];
+        const gradeText = grade === "correct" ? "正确" : grade === "wrong" ? "错误" : "未批";
+        return [
+          index + 1,
+          heard,
+          item.word,
+          item.phonetic || "",
+          item.meaning,
+          gradeText,
+        ].join("\t");
+      }),
+    ];
+    downloadFile(
+      `听写结果-${record.unitLabels.join("-")}-${record.endedAt.slice(0, 10)}.tsv`,
+      `\ufeff${lines.join("\n")}`,
+      "text/tab-separated-values;charset=utf-8",
+    );
+    showToast("本次结果已导出");
+  }
+
+  async function readJsonFile(file) {
+    const text = await file.text();
+    return JSON.parse(text);
+  }
+
+  async function importBackup(file) {
+    try {
+      const payload = await readJsonFile(file);
+      const imported = payload.state || payload;
+      if (!imported || !Array.isArray(imported.history)) {
+        throw new Error("备份结构不正确");
+      }
+      const confirmed = window.confirm(
+        "导入会覆盖这台设备当前的历史、进度、设置和自定义词库。确认继续吗？",
+      );
+      if (!confirmed) return;
+      state = {
+        schemaVersion: 2,
+        settings: { ...DEFAULT_SETTINGS, ...(imported.settings || {}) },
+        customUnits: Array.isArray(imported.customUnits) ? imported.customUnits : [],
+        activeSession: imported.activeSession || null,
+        history: imported.history,
+      };
+      saveState();
+      renderBank();
+      showToast("备份恢复成功");
+    } catch (error) {
+      console.error(error);
+      showToast("导入失败：请选择本网页导出的完整备份");
+    } finally {
+      elements.backupFileInput.value = "";
+    }
+  }
+
+  function sanitizeImportedUnits(payload) {
+    const rawUnits = Array.isArray(payload) ? payload : payload?.units;
+    if (!Array.isArray(rawUnits) || !rawUnits.length) {
+      throw new Error("没有找到可导入的单元");
+    }
+
+    return rawUnits.map((unit, unitIndex) => {
+      if (!Array.isArray(unit.words) || !unit.words.length) {
+        throw new Error(`第 ${unitIndex + 1} 个单元没有单词`);
+      }
+      const unitId = createId(`custom-unit-${unitIndex + 1}`);
+      return {
+        id: unitId,
+        label: String(unit.label || `新单元 ${unitIndex + 1}`),
+        title: String(unit.title || ""),
+        chineseTitle: String(unit.chineseTitle || ""),
+        importedAt: new Date().toISOString(),
+        words: unit.words.map((word, wordIndex) => {
+          const text = String(word.word || "").trim();
+          if (!text) throw new Error(`第 ${unitIndex + 1} 个单元第 ${wordIndex + 1} 个单词为空`);
+          return {
+            id: `${unitId}-${String(wordIndex + 1).padStart(3, "0")}`,
+            word: text,
+            speech: String(word.speech || text),
+            phonetic: String(word.phonetic || ""),
+            meaning: String(word.meaning || ""),
+          };
+        }),
+      };
+    });
+  }
+
+  async function importWordBank(file) {
+    try {
+      const payload = await readJsonFile(file);
+      const units = sanitizeImportedUnits(payload);
+      state.customUnits.push(...units);
+      saveState();
+      renderBank();
+      renderUnitGrid();
+      showToast(`已导入 ${units.length} 个新单元`);
+    } catch (error) {
+      console.error(error);
+      showToast(`词库导入失败：${error.message || "格式不正确"}`);
+    } finally {
+      elements.wordBankFileInput.value = "";
+    }
+  }
+
+  function clearRecords() {
+    const confirmed = window.confirm(
+      "确认清空全部听写记录和未完成进度吗？建议先导出完整备份。",
+    );
+    if (!confirmed) return;
+    state.history = [];
+    state.activeSession = null;
+    saveState();
+    renderBank();
+    showToast("听写记录已清空");
+  }
+
+  function removeCustomUnit(unitId) {
+    const unit = state.customUnits.find((item) => item.id === unitId);
+    if (!unit) return;
+    if (!window.confirm(`确认删除“${unit.label}”吗？历史记录中的旧答案不会受影响。`)) return;
+    state.customUnits = state.customUnits.filter((item) => item.id !== unitId);
+    state.settings.selectedUnits = state.settings.selectedUnits.filter((id) => id !== unitId);
+    saveState();
+    renderBank();
+    showToast("自定义单元已删除");
+  }
+
+  function loadVoices() {
+    if (!("speechSynthesis" in window)) return;
+    availableVoices = window.speechSynthesis
+      .getVoices()
+      .filter((voice) => /^en/i.test(voice.lang))
+      .sort((a, b) => {
+        const aBritish = /^en-GB/i.test(a.lang) ? 0 : 1;
+        const bBritish = /^en-GB/i.test(b.lang) ? 0 : 1;
+        return aBritish - bBritish || a.name.localeCompare(b.name);
+      });
+
+    const previous = state.settings.voiceURI || "";
+    const accentOptions = ACCENT_PRESETS.map(
+      (preset) =>
+        `<option value="${escapeHtml(preset.value)}">${escapeHtml(preset.label)}</option>`,
+    ).join("");
+    const systemVoiceOptions = availableVoices.length
+      ? `<optgroup label="本机提供的具体语音">${availableVoices
+          .map(
+            (voice) =>
+              `<option value="${escapeHtml(voice.voiceURI)}">${escapeHtml(voice.name)} · ${escapeHtml(voice.lang)}</option>`,
+          )
+          .join("")}</optgroup>`
+      : "";
+    elements.voiceSelect.innerHTML =
+      `<optgroup label="口音（所有手机可选）">${accentOptions}</optgroup>${systemVoiceOptions}`;
+    const selectionStillAvailable =
+      ACCENT_PRESETS.some((preset) => preset.value === previous) ||
+      availableVoices.some((voice) => voice.voiceURI === previous);
+    elements.voiceSelect.value = selectionStillAvailable ? previous : "";
+  }
+
+  function bindEvents() {
+    document.querySelectorAll("[data-open-view]").forEach((button) => {
+      button.addEventListener("click", () => setView(button.dataset.openView));
+    });
+
+    elements.brandHomeButton.addEventListener("click", () => setView("home"));
+
+    elements.unitGrid.addEventListener("change", (event) => {
+      const input = event.target.closest('input[type="checkbox"]');
+      if (!input) return;
+      if (input.checked) {
+        if (!state.settings.selectedUnits.includes(input.value)) {
+          state.settings.selectedUnits.push(input.value);
+        }
+      } else {
+        state.settings.selectedUnits = state.settings.selectedUnits.filter(
+          (id) => id !== input.value,
+        );
+      }
+      saveState();
+      updateSelectionSummary();
+    });
+
+    elements.selectAllUnits.addEventListener("click", () => {
+      state.settings.selectedUnits = getAllUnits().map((unit) => unit.id);
+      saveState();
+      renderUnitGrid();
+    });
+
+    elements.clearUnits.addEventListener("click", () => {
+      state.settings.selectedUnits = [];
+      saveState();
+      renderUnitGrid();
+    });
+
+    document.querySelectorAll('input[name="dictationMode"]').forEach((input) => {
+      input.addEventListener("change", readSettingsFromControls);
+    });
+    elements.speechRate.addEventListener("change", readSettingsFromControls);
+    elements.repeatCount.addEventListener("change", readSettingsFromControls);
+    elements.voiceSelect.addEventListener("change", readSettingsFromControls);
+
+    elements.testVoiceButton.addEventListener("click", () => {
+      readSettingsFromControls();
+      speak("Welcome. Your listening practice is ready.", {
+        rate: state.settings.rate,
+        repeat: 1,
+        voiceURI: state.settings.voiceURI,
+      });
+    });
+
+    elements.startButton.addEventListener("click", startSession);
+    elements.resumeButton.addEventListener("click", resumeSession);
+    elements.pauseButton.addEventListener("click", pauseSession);
+    elements.endButton.addEventListener("click", requestEarlyFinish);
+    elements.cancelFinishButton.addEventListener("click", closeFinishModal);
+    elements.confirmFinishButton.addEventListener("click", () => {
+      closeFinishModal();
+      finishSession("ended");
+    });
+    elements.finishModal.addEventListener("click", (event) => {
+      if (event.target === elements.finishModal) closeFinishModal();
+    });
+    elements.replayButton.addEventListener("click", playCurrentWord);
+    elements.nextButton.addEventListener("click", goToNextWord);
+
+    elements.answerList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-grade]");
+      const row = event.target.closest("[data-word-id]");
+      if (!button || !row) return;
+      updateGrade(row.dataset.wordId, button.dataset.grade);
+    });
+
+    elements.historyList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-history-action]");
+      const card = event.target.closest("[data-record-id]");
+      if (!button || !card) return;
+      const recordId = card.dataset.recordId;
+      if (button.dataset.historyAction === "view") {
+        currentReviewId = recordId;
+        setView("review");
+      }
+      if (button.dataset.historyAction === "delete") {
+        if (!window.confirm("确认删除这条听写记录吗？")) return;
+        state.history = state.history.filter((record) => record.id !== recordId);
+        saveState();
+        renderHistory();
+      }
+    });
+
+    elements.exportReviewButton.addEventListener("click", exportReview);
+    elements.exportBackupButton.addEventListener("click", exportBackup);
+    elements.exportWordBankButton.addEventListener("click", exportCurrentWordBank);
+    elements.downloadTemplateButton.addEventListener("click", downloadWordBankTemplate);
+    elements.clearDataButton.addEventListener("click", clearRecords);
+
+    elements.backupFileInput.addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (file) importBackup(file);
+    });
+
+    elements.wordBankFileInput.addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (file) importWordBank(file);
+    });
+
+    elements.customUnitList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-remove-unit]");
+      const row = event.target.closest("[data-unit-id]");
+      if (button && row) removeCustomUnit(row.dataset.unitId);
+    });
+
+    window.addEventListener("beforeunload", saveState);
+    window.addEventListener("storage", (event) => {
+      if (event.key !== STORAGE_KEY) return;
+      state = loadState();
+      renderHome();
+    });
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }
+
+  function initialize() {
+    if (!DEFAULT_BANK.units?.length) {
+      showToast("内置词库未加载，请确认 word-bank.js 与网页在同一文件夹");
+    }
+    bindEvents();
+    loadVoices();
+    window.setTimeout(loadVoices, 500);
+    renderHome();
+    setView("home");
+  }
+
+  initialize();
+})();
+
+</script>
+  </body>
+</html>

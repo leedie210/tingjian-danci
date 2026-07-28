@@ -300,7 +300,17 @@ body.dictation-mode .app-shell {
   display: block;
 }
 
-.unit-option input {
+.unit-option.is-expanded {
+  grid-column: 1 / -1;
+}
+
+.unit-header,
+.unit-selector {
+  position: relative;
+  display: block;
+}
+
+.unit-checkbox {
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -309,7 +319,7 @@ body.dictation-mode .app-shell {
 .unit-card {
   display: flex;
   min-height: 104px;
-  padding: 16px;
+  padding: 16px 112px 16px 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -321,15 +331,90 @@ body.dictation-mode .app-shell {
   justify-content: space-between;
 }
 
-.unit-option input:checked + .unit-card {
+.unit-checkbox:checked + .unit-card,
+.unit-checkbox:indeterminate + .unit-card {
   background: var(--blue-soft);
   border-color: var(--blue);
   transform: translateY(-1px);
 }
 
-.unit-option input:focus-visible + .unit-card {
+.unit-checkbox:focus-visible + .unit-card {
   outline: 3px solid rgba(29, 95, 130, 0.2);
   outline-offset: 2px;
+}
+
+.unit-expand {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1;
+  padding: 8px 10px;
+  color: var(--blue);
+  background: #fff;
+  border: 1px solid rgba(29, 95, 130, 0.22);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.word-picker {
+  display: grid;
+  max-height: 420px;
+  margin-top: 10px;
+  padding: 12px;
+  overflow-y: auto;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.word-picker.is-hidden {
+  display: none;
+}
+
+.word-option {
+  display: grid;
+  min-width: 0;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  grid-template-columns: 20px 1fr;
+  gap: 9px;
+  align-items: start;
+}
+
+.word-option:has(input:checked) {
+  border-color: rgba(29, 95, 130, 0.28);
+}
+
+.word-option input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--blue);
+}
+
+.word-option strong,
+.word-option small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.word-option strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.word-option small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .unit-card strong,
@@ -797,7 +882,7 @@ body.dictation-mode .app-shell {
 .dictation-actions {
   display: grid;
   gap: 12px;
-  grid-template-columns: 1fr 1.25fr;
+  grid-template-columns: 0.9fr 0.9fr 1.2fr;
 }
 
 .privacy-reminder {
@@ -1188,6 +1273,10 @@ body.dictation-mode .app-shell {
     min-height: 92px;
   }
 
+  .word-picker {
+    grid-template-columns: 1fr;
+  }
+
   .setup-actions .button,
   .button-row .button,
   .button-row .file-button {
@@ -1195,7 +1284,11 @@ body.dictation-mode .app-shell {
   }
 
   .dictation-actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dictation-actions #nextButton {
+    grid-column: 1 / -1;
   }
 
   .button-large {
@@ -1318,11 +1411,15 @@ body.dictation-mode .app-shell {
 
             <div class="settings-grid">
               <label class="form-field">
-                <span>朗读速度</span>
-                <select id="speechRate">
-                  <option value="0.65">较慢</option>
-                  <option value="0.8" selected>适中</option>
-                  <option value="0.95">正常</option>
+                <span>每遍间隔</span>
+                <select id="repeatGap">
+                  <option value="1">1 秒</option>
+                  <option value="2" selected>2 秒</option>
+                  <option value="3">3 秒</option>
+                  <option value="4">4 秒</option>
+                  <option value="5">5 秒</option>
+                  <option value="6">6 秒</option>
+                  <option value="7">7 秒</option>
                 </select>
               </label>
               <label class="form-field">
@@ -1355,7 +1452,7 @@ body.dictation-mode .app-shell {
 
             <div class="notice">
               <span aria-hidden="true">◎</span>
-              <p>手机版也可以直接选英式、美式等口音；具体音色由手机系统提供。第一次使用前请先点“测试发音”。</p>
+              <p>“网站内置”美式语音不依赖手机系统，各手机听到的音色一致；自定义新增的单词会自动改用手机系统发音。</p>
             </div>
 
             <div class="setup-actions">
@@ -1404,9 +1501,13 @@ body.dictation-mode .app-shell {
           </div>
 
           <div class="dictation-actions">
+            <button class="button button-secondary button-large" id="previousButton" type="button">
+              <span aria-hidden="true">←</span>
+              上一个
+            </button>
             <button class="button button-secondary button-large" id="replayButton" type="button">
               <span aria-hidden="true">↻</span>
-              再听一次
+              再听
             </button>
             <button class="button button-primary button-large" id="nextButton" type="button">
               下一个单词
@@ -5164,6 +5265,10 @@ window.DEFAULT_WORD_BANK = {
 
 </script>
     <script>
+window.BUNDLED_VOICE_DATA={"packs":[{"value":"pack:us-jenny","slug":"us-jenny","label":"网站内置｜美式女声 Jenny（推荐）"},{"value":"pack:us-guy","slug":"us-guy","label":"网站内置｜美式男声 Guy（清晰）"}],"cues":{"pack:us-jenny":{"unit-1-001":{"file":"./audio/us-jenny/unit-1.mp3","start":0.1,"duration":1.64837},"unit-1-002":{"file":"./audio/us-jenny/unit-1.mp3","start":1.69837,"duration":1.63043},"unit-1-003":{"file":"./audio/us-jenny/unit-1.mp3","start":3.3288,"duration":1.49457},"unit-1-004":{"file":"./audio/us-jenny/unit-1.mp3","start":4.82337,"duration":1.54891},"unit-1-005":{"file":"./audio/us-jenny/unit-1.mp3","start":6.37228,"duration":1.61685},"unit-1-006":{"file":"./audio/us-jenny/unit-1.mp3","start":7.98913,"duration":1.4538},"unit-1-007":{"file":"./audio/us-jenny/unit-1.mp3","start":9.44293,"duration":1.83424},"unit-1-008":{"file":"./audio/us-jenny/unit-1.mp3","start":11.27717,"duration":1.80707},"unit-1-009":{"file":"./audio/us-jenny/unit-1.mp3","start":13.08424,"duration":1.58967},"unit-1-010":{"file":"./audio/us-jenny/unit-1.mp3","start":14.67391,"duration":1.65761},"unit-1-011":{"file":"./audio/us-jenny/unit-1.mp3","start":16.33152,"duration":1.53533},"unit-1-012":{"file":"./audio/us-jenny/unit-1.mp3","start":17.86685,"duration":1.52174},"unit-1-013":{"file":"./audio/us-jenny/unit-1.mp3","start":19.38859,"duration":1.57609},"unit-1-014":{"file":"./audio/us-jenny/unit-1.mp3","start":20.96467,"duration":1.46739},"unit-1-015":{"file":"./audio/us-jenny/unit-1.mp3","start":22.43206,"duration":1.57609},"unit-1-016":{"file":"./audio/us-jenny/unit-1.mp3","start":24.00815,"duration":1.75272},"unit-1-017":{"file":"./audio/us-jenny/unit-1.mp3","start":25.76087,"duration":1.46739},"unit-1-018":{"file":"./audio/us-jenny/unit-1.mp3","start":27.22826,"duration":1.52174},"unit-1-019":{"file":"./audio/us-jenny/unit-1.mp3","start":28.75,"duration":1.46739},"unit-1-020":{"file":"./audio/us-jenny/unit-1.mp3","start":30.21739,"duration":1.52174},"unit-1-021":{"file":"./audio/us-jenny/unit-1.mp3","start":31.73913,"duration":1.49457},"unit-1-022":{"file":"./audio/us-jenny/unit-1.mp3","start":33.23369,"duration":1.58967},"unit-1-023":{"file":"./audio/us-jenny/unit-1.mp3","start":34.82337,"duration":1.50815},"unit-1-024":{"file":"./audio/us-jenny/unit-1.mp3","start":36.33152,"duration":1.61685},"unit-1-025":{"file":"./audio/us-jenny/unit-1.mp3","start":37.94837,"duration":1.61685},"unit-1-026":{"file":"./audio/us-jenny/unit-1.mp3","start":39.56522,"duration":1.77989},"unit-1-027":{"file":"./audio/us-jenny/unit-1.mp3","start":41.34511,"duration":1.77989},"unit-1-028":{"file":"./audio/us-jenny/unit-1.mp3","start":43.125,"duration":1.63043},"unit-1-029":{"file":"./audio/us-jenny/unit-1.mp3","start":44.75543,"duration":1.61685},"unit-1-030":{"file":"./audio/us-jenny/unit-1.mp3","start":46.37228,"duration":1.61685},"unit-1-031":{"file":"./audio/us-jenny/unit-1.mp3","start":47.98913,"duration":1.7663},"unit-1-032":{"file":"./audio/us-jenny/unit-1.mp3","start":49.75543,"duration":1.65761},"unit-1-033":{"file":"./audio/us-jenny/unit-1.mp3","start":51.41304,"duration":1.72554},"unit-1-034":{"file":"./audio/us-jenny/unit-1.mp3","start":53.13859,"duration":1.69837},"unit-1-035":{"file":"./audio/us-jenny/unit-1.mp3","start":54.83696,"duration":1.46739},"unit-1-036":{"file":"./audio/us-jenny/unit-1.mp3","start":56.30435,"duration":1.5625},"unit-1-037":{"file":"./audio/us-jenny/unit-1.mp3","start":57.86685,"duration":1.54891},"unit-1-038":{"file":"./audio/us-jenny/unit-1.mp3","start":59.41576,"duration":1.69837},"unit-1-039":{"file":"./audio/us-jenny/unit-1.mp3","start":61.11413,"duration":1.54891},"unit-1-040":{"file":"./audio/us-jenny/unit-1.mp3","start":62.66304,"duration":1.61685},"unit-1-041":{"file":"./audio/us-jenny/unit-1.mp3","start":64.27989,"duration":1.79348},"unit-1-042":{"file":"./audio/us-jenny/unit-1.mp3","start":66.07337,"duration":1.44022},"unit-1-043":{"file":"./audio/us-jenny/unit-1.mp3","start":67.51359,"duration":1.53533},"unit-1-044":{"file":"./audio/us-jenny/unit-1.mp3","start":69.04891,"duration":1.52174},"unit-1-045":{"file":"./audio/us-jenny/unit-1.mp3","start":70.57065,"duration":1.7663},"unit-1-046":{"file":"./audio/us-jenny/unit-1.mp3","start":72.33696,"duration":1.65761},"unit-2-001":{"file":"./audio/us-jenny/unit-2.mp3","start":0.1,"duration":1.48533},"unit-2-002":{"file":"./audio/us-jenny/unit-2.mp3","start":1.53533,"duration":1.48098},"unit-2-003":{"file":"./audio/us-jenny/unit-2.mp3","start":3.0163,"duration":1.63043},"unit-2-004":{"file":"./audio/us-jenny/unit-2.mp3","start":4.64674,"duration":2.2962},"unit-2-005":{"file":"./audio/us-jenny/unit-2.mp3","start":6.94293,"duration":1.58967},"unit-2-006":{"file":"./audio/us-jenny/unit-2.mp3","start":8.53261,"duration":1.72554},"unit-2-007":{"file":"./audio/us-jenny/unit-2.mp3","start":10.25815,"duration":1.58967},"unit-2-008":{"file":"./audio/us-jenny/unit-2.mp3","start":11.84783,"duration":1.79348},"unit-2-009":{"file":"./audio/us-jenny/unit-2.mp3","start":13.6413,"duration":1.48098},"unit-2-010":{"file":"./audio/us-jenny/unit-2.mp3","start":15.12228,"duration":1.63043},"unit-2-011":{"file":"./audio/us-jenny/unit-2.mp3","start":16.75272,"duration":1.50815},"unit-2-012":{"file":"./audio/us-jenny/unit-2.mp3","start":18.26087,"duration":1.71196},"unit-2-013":{"file":"./audio/us-jenny/unit-2.mp3","start":19.97283,"duration":1.33152},"unit-2-014":{"file":"./audio/us-jenny/unit-2.mp3","start":21.30435,"duration":1.61685},"unit-2-015":{"file":"./audio/us-jenny/unit-2.mp3","start":22.9212,"duration":1.58967},"unit-2-016":{"file":"./audio/us-jenny/unit-2.mp3","start":24.51087,"duration":1.72554},"unit-2-017":{"file":"./audio/us-jenny/unit-2.mp3","start":26.23641,"duration":1.48098},"unit-2-018":{"file":"./audio/us-jenny/unit-2.mp3","start":27.71739,"duration":1.54891},"unit-2-019":{"file":"./audio/us-jenny/unit-2.mp3","start":29.2663,"duration":1.64402},"unit-2-020":{"file":"./audio/us-jenny/unit-2.mp3","start":30.91033,"duration":1.7663},"unit-2-021":{"file":"./audio/us-jenny/unit-2.mp3","start":32.67663,"duration":1.5625},"unit-2-022":{"file":"./audio/us-jenny/unit-2.mp3","start":34.23913,"duration":1.91576},"unit-2-023":{"file":"./audio/us-jenny/unit-2.mp3","start":36.15489,"duration":1.71196},"unit-2-024":{"file":"./audio/us-jenny/unit-2.mp3","start":37.86685,"duration":1.48098},"unit-2-025":{"file":"./audio/us-jenny/unit-2.mp3","start":39.34783,"duration":1.86141},"unit-2-026":{"file":"./audio/us-jenny/unit-2.mp3","start":41.20924,"duration":1.84783},"unit-2-027":{"file":"./audio/us-jenny/unit-2.mp3","start":43.05706,"duration":1.42663},"unit-2-028":{"file":"./audio/us-jenny/unit-2.mp3","start":44.48369,"duration":1.46739},"unit-2-029":{"file":"./audio/us-jenny/unit-2.mp3","start":45.95109,"duration":1.58967},"unit-2-030":{"file":"./audio/us-jenny/unit-2.mp3","start":47.54076,"duration":2.02446},"unit-2-031":{"file":"./audio/us-jenny/unit-2.mp3","start":49.56522,"duration":1.30435},"unit-2-032":{"file":"./audio/us-jenny/unit-2.mp3","start":50.86956,"duration":1.73913},"unit-2-033":{"file":"./audio/us-jenny/unit-2.mp3","start":52.60869,"duration":1.4538},"unit-2-034":{"file":"./audio/us-jenny/unit-2.mp3","start":54.0625,"duration":1.48098},"unit-2-035":{"file":"./audio/us-jenny/unit-2.mp3","start":55.54348,"duration":1.60326},"unit-2-036":{"file":"./audio/us-jenny/unit-2.mp3","start":57.14674,"duration":1.65761},"unit-2-037":{"file":"./audio/us-jenny/unit-2.mp3","start":58.80435,"duration":1.61685},"unit-2-038":{"file":"./audio/us-jenny/unit-2.mp3","start":60.42119,"duration":1.99728},"unit-2-039":{"file":"./audio/us-jenny/unit-2.mp3","start":62.41848,"duration":1.46739},"unit-2-040":{"file":"./audio/us-jenny/unit-2.mp3","start":63.88587,"duration":1.77989},"unit-2-041":{"file":"./audio/us-jenny/unit-2.mp3","start":65.66576,"duration":1.42663},"unit-2-042":{"file":"./audio/us-jenny/unit-2.mp3","start":67.09239,"duration":1.65761},"unit-2-043":{"file":"./audio/us-jenny/unit-2.mp3","start":68.75,"duration":1.64402},"unit-2-044":{"file":"./audio/us-jenny/unit-2.mp3","start":70.39402,"duration":1.53533},"unit-2-045":{"file":"./audio/us-jenny/unit-2.mp3","start":71.92935,"duration":1.58967},"unit-2-046":{"file":"./audio/us-jenny/unit-2.mp3","start":73.51902,"duration":1.48098},"unit-2-047":{"file":"./audio/us-jenny/unit-2.mp3","start":75.0,"duration":1.58967},"unit-2-048":{"file":"./audio/us-jenny/unit-2.mp3","start":76.58967,"duration":1.71196},"unit-2-049":{"file":"./audio/us-jenny/unit-2.mp3","start":78.30163,"duration":1.82065},"unit-2-050":{"file":"./audio/us-jenny/unit-2.mp3","start":80.12228,"duration":1.44022},"unit-2-051":{"file":"./audio/us-jenny/unit-2.mp3","start":81.5625,"duration":1.64402},"unit-2-052":{"file":"./audio/us-jenny/unit-2.mp3","start":83.20652,"duration":1.80707},"unit-2-053":{"file":"./audio/us-jenny/unit-2.mp3","start":85.01359,"duration":1.72554},"unit-2-054":{"file":"./audio/us-jenny/unit-2.mp3","start":86.73913,"duration":1.6712},"unit-2-055":{"file":"./audio/us-jenny/unit-2.mp3","start":88.41032,"duration":1.80707},"unit-2-056":{"file":"./audio/us-jenny/unit-2.mp3","start":90.21739,"duration":1.69837},"unit-3-001":{"file":"./audio/us-jenny/unit-3.mp3","start":0.1,"duration":1.5125},"unit-3-002":{"file":"./audio/us-jenny/unit-3.mp3","start":1.5625,"duration":1.6712},"unit-3-003":{"file":"./audio/us-jenny/unit-3.mp3","start":3.2337,"duration":1.50815},"unit-3-004":{"file":"./audio/us-jenny/unit-3.mp3","start":4.74185,"duration":1.52174},"unit-3-005":{"file":"./audio/us-jenny/unit-3.mp3","start":6.26359,"duration":1.42663},"unit-3-006":{"file":"./audio/us-jenny/unit-3.mp3","start":7.69022,"duration":1.64402},"unit-3-007":{"file":"./audio/us-jenny/unit-3.mp3","start":9.33424,"duration":1.63043},"unit-3-008":{"file":"./audio/us-jenny/unit-3.mp3","start":10.96467,"duration":1.65761},"unit-3-009":{"file":"./audio/us-jenny/unit-3.mp3","start":12.62228,"duration":1.4538},"unit-3-010":{"file":"./audio/us-jenny/unit-3.mp3","start":14.07609,"duration":1.94293},"unit-3-011":{"file":"./audio/us-jenny/unit-3.mp3","start":16.01902,"duration":1.53533},"unit-3-012":{"file":"./audio/us-jenny/unit-3.mp3","start":17.55435,"duration":1.57609},"unit-3-013":{"file":"./audio/us-jenny/unit-3.mp3","start":19.13043,"duration":1.46739},"unit-3-014":{"file":"./audio/us-jenny/unit-3.mp3","start":20.59783,"duration":1.49457},"unit-3-015":{"file":"./audio/us-jenny/unit-3.mp3","start":22.09239,"duration":1.52174},"unit-3-016":{"file":"./audio/us-jenny/unit-3.mp3","start":23.61413,"duration":1.65761},"unit-3-017":{"file":"./audio/us-jenny/unit-3.mp3","start":25.27174,"duration":1.77989},"unit-3-018":{"file":"./audio/us-jenny/unit-3.mp3","start":27.05163,"duration":1.65761},"unit-3-019":{"file":"./audio/us-jenny/unit-3.mp3","start":28.70924,"duration":1.64402},"unit-3-020":{"file":"./audio/us-jenny/unit-3.mp3","start":30.35326,"duration":1.7663},"unit-3-021":{"file":"./audio/us-jenny/unit-3.mp3","start":32.11956,"duration":1.49457},"unit-3-022":{"file":"./audio/us-jenny/unit-3.mp3","start":33.61413,"duration":1.71196},"unit-3-023":{"file":"./audio/us-jenny/unit-3.mp3","start":35.32609,"duration":1.72554},"unit-3-024":{"file":"./audio/us-jenny/unit-3.mp3","start":37.05163,"duration":1.50815},"unit-3-025":{"file":"./audio/us-jenny/unit-3.mp3","start":38.55978,"duration":1.4538},"unit-3-026":{"file":"./audio/us-jenny/unit-3.mp3","start":40.01359,"duration":1.50815},"unit-3-027":{"file":"./audio/us-jenny/unit-3.mp3","start":41.52174,"duration":1.68478},"unit-3-028":{"file":"./audio/us-jenny/unit-3.mp3","start":43.20652,"duration":1.77989},"unit-3-029":{"file":"./audio/us-jenny/unit-3.mp3","start":44.98641,"duration":1.875},"unit-3-030":{"file":"./audio/us-jenny/unit-3.mp3","start":46.86141,"duration":1.71196},"unit-3-031":{"file":"./audio/us-jenny/unit-3.mp3","start":48.57337,"duration":1.69837},"unit-3-032":{"file":"./audio/us-jenny/unit-3.mp3","start":50.27174,"duration":1.61685},"unit-3-033":{"file":"./audio/us-jenny/unit-3.mp3","start":51.88859,"duration":1.7663},"unit-3-034":{"file":"./audio/us-jenny/unit-3.mp3","start":53.65489,"duration":1.84783},"unit-3-035":{"file":"./audio/us-jenny/unit-3.mp3","start":55.50272,"duration":1.5625},"unit-3-036":{"file":"./audio/us-jenny/unit-3.mp3","start":57.06522,"duration":1.64402},"unit-3-037":{"file":"./audio/us-jenny/unit-3.mp3","start":58.70924,"duration":1.71196},"unit-3-038":{"file":"./audio/us-jenny/unit-3.mp3","start":60.42119,"duration":1.4538},"unit-3-039":{"file":"./audio/us-jenny/unit-3.mp3","start":61.875,"duration":1.75272},"unit-3-040":{"file":"./audio/us-jenny/unit-3.mp3","start":63.62772,"duration":1.80707},"unit-3-041":{"file":"./audio/us-jenny/unit-3.mp3","start":65.43478,"duration":1.52174},"unit-3-042":{"file":"./audio/us-jenny/unit-3.mp3","start":66.95652,"duration":1.75272},"unit-3-043":{"file":"./audio/us-jenny/unit-3.mp3","start":68.70924,"duration":1.83424},"unit-3-044":{"file":"./audio/us-jenny/unit-3.mp3","start":70.54348,"duration":1.48098},"unit-3-045":{"file":"./audio/us-jenny/unit-3.mp3","start":72.02446,"duration":1.54891},"unit-3-046":{"file":"./audio/us-jenny/unit-3.mp3","start":73.57337,"duration":1.71196},"unit-3-047":{"file":"./audio/us-jenny/unit-3.mp3","start":75.28532,"duration":1.3587},"unit-3-048":{"file":"./audio/us-jenny/unit-3.mp3","start":76.64402,"duration":1.7663},"unit-3-049":{"file":"./audio/us-jenny/unit-3.mp3","start":78.41032,"duration":1.60326},"unit-3-050":{"file":"./audio/us-jenny/unit-3.mp3","start":80.01359,"duration":1.42663},"unit-3-051":{"file":"./audio/us-jenny/unit-3.mp3","start":81.44022,"duration":1.49457},"unit-3-052":{"file":"./audio/us-jenny/unit-3.mp3","start":82.93478,"duration":1.5625},"unit-3-053":{"file":"./audio/us-jenny/unit-3.mp3","start":84.49728,"duration":1.73913},"unit-4-001":{"file":"./audio/us-jenny/unit-4.mp3","start":0.1,"duration":1.85217},"unit-4-002":{"file":"./audio/us-jenny/unit-4.mp3","start":1.90217,"duration":1.64402},"unit-4-003":{"file":"./audio/us-jenny/unit-4.mp3","start":3.5462,"duration":1.4538},"unit-4-004":{"file":"./audio/us-jenny/unit-4.mp3","start":5.0,"duration":1.54891},"unit-4-005":{"file":"./audio/us-jenny/unit-4.mp3","start":6.54891,"duration":1.48098},"unit-4-006":{"file":"./audio/us-jenny/unit-4.mp3","start":8.02989,"duration":1.61685},"unit-4-007":{"file":"./audio/us-jenny/unit-4.mp3","start":9.64674,"duration":1.5625},"unit-4-008":{"file":"./audio/us-jenny/unit-4.mp3","start":11.20924,"duration":1.42663},"unit-4-009":{"file":"./audio/us-jenny/unit-4.mp3","start":12.63587,"duration":1.41304},"unit-4-010":{"file":"./audio/us-jenny/unit-4.mp3","start":14.04891,"duration":2.09239},"unit-4-011":{"file":"./audio/us-jenny/unit-4.mp3","start":16.1413,"duration":1.58967},"unit-4-012":{"file":"./audio/us-jenny/unit-4.mp3","start":17.73098,"duration":1.58967},"unit-4-013":{"file":"./audio/us-jenny/unit-4.mp3","start":19.32065,"duration":1.50815},"unit-4-014":{"file":"./audio/us-jenny/unit-4.mp3","start":20.8288,"duration":1.71196},"unit-4-015":{"file":"./audio/us-jenny/unit-4.mp3","start":22.54076,"duration":1.52174},"unit-4-016":{"file":"./audio/us-jenny/unit-4.mp3","start":24.0625,"duration":1.6712},"unit-4-017":{"file":"./audio/us-jenny/unit-4.mp3","start":25.7337,"duration":1.48098},"unit-4-018":{"file":"./audio/us-jenny/unit-4.mp3","start":27.21467,"duration":1.54891},"unit-4-019":{"file":"./audio/us-jenny/unit-4.mp3","start":28.76359,"duration":1.46739},"unit-4-020":{"file":"./audio/us-jenny/unit-4.mp3","start":30.23098,"duration":1.54891},"unit-4-021":{"file":"./audio/us-jenny/unit-4.mp3","start":31.77989,"duration":1.7663},"unit-4-022":{"file":"./audio/us-jenny/unit-4.mp3","start":33.54619,"duration":1.5625},"unit-4-023":{"file":"./audio/us-jenny/unit-4.mp3","start":35.10869,"duration":1.68478},"unit-4-024":{"file":"./audio/us-jenny/unit-4.mp3","start":36.79348,"duration":1.50815},"unit-4-025":{"file":"./audio/us-jenny/unit-4.mp3","start":38.30163,"duration":1.71196},"unit-4-026":{"file":"./audio/us-jenny/unit-4.mp3","start":40.01359,"duration":1.4538},"unit-4-027":{"file":"./audio/us-jenny/unit-4.mp3","start":41.46739,"duration":1.63043},"unit-4-028":{"file":"./audio/us-jenny/unit-4.mp3","start":43.09783,"duration":1.46739},"unit-4-029":{"file":"./audio/us-jenny/unit-4.mp3","start":44.56522,"duration":1.73913},"unit-4-030":{"file":"./audio/us-jenny/unit-4.mp3","start":46.30435,"duration":1.58967},"unit-4-031":{"file":"./audio/us-jenny/unit-4.mp3","start":47.89402,"duration":1.68478},"unit-4-032":{"file":"./audio/us-jenny/unit-4.mp3","start":49.5788,"duration":1.5625},"unit-4-033":{"file":"./audio/us-jenny/unit-4.mp3","start":51.1413,"duration":1.875},"unit-4-034":{"file":"./audio/us-jenny/unit-4.mp3","start":53.0163,"duration":1.58967},"unit-4-035":{"file":"./audio/us-jenny/unit-4.mp3","start":54.60598,"duration":1.5625},"unit-4-036":{"file":"./audio/us-jenny/unit-4.mp3","start":56.16848,"duration":1.61685},"unit-4-037":{"file":"./audio/us-jenny/unit-4.mp3","start":57.78533,"duration":1.50815},"unit-4-038":{"file":"./audio/us-jenny/unit-4.mp3","start":59.29348,"duration":1.71196},"unit-4-039":{"file":"./audio/us-jenny/unit-4.mp3","start":61.00543,"duration":1.49457},"unit-4-040":{"file":"./audio/us-jenny/unit-4.mp3","start":62.5,"duration":1.49457},"unit-4-041":{"file":"./audio/us-jenny/unit-4.mp3","start":63.99456,"duration":1.72554},"unit-4-042":{"file":"./audio/us-jenny/unit-4.mp3","start":65.72011,"duration":1.86141},"unit-4-043":{"file":"./audio/us-jenny/unit-4.mp3","start":67.58152,"duration":1.65761},"unit-4-044":{"file":"./audio/us-jenny/unit-4.mp3","start":69.23913,"duration":1.7663},"unit-4-045":{"file":"./audio/us-jenny/unit-4.mp3","start":71.00543,"duration":1.48098},"unit-4-046":{"file":"./audio/us-jenny/unit-4.mp3","start":72.48641,"duration":1.46739},"unit-4-047":{"file":"./audio/us-jenny/unit-4.mp3","start":73.9538,"duration":1.60326},"unit-4-048":{"file":"./audio/us-jenny/unit-4.mp3","start":75.55706,"duration":1.63043},"unit-4-049":{"file":"./audio/us-jenny/unit-4.mp3","start":77.1875,"duration":1.52174},"unit-4-050":{"file":"./audio/us-jenny/unit-4.mp3","start":78.70924,"duration":1.54891},"unit-4-051":{"file":"./audio/us-jenny/unit-4.mp3","start":80.25815,"duration":1.5625},"unit-4-052":{"file":"./audio/us-jenny/unit-4.mp3","start":81.82065,"duration":1.90217},"unit-4-053":{"file":"./audio/us-jenny/unit-4.mp3","start":83.72282,"duration":1.64402},"unit-4-054":{"file":"./audio/us-jenny/unit-4.mp3","start":85.36685,"duration":2.02446},"unit-4-055":{"file":"./audio/us-jenny/unit-4.mp3","start":87.3913,"duration":1.75272},"unit-4-056":{"file":"./audio/us-jenny/unit-4.mp3","start":89.14402,"duration":1.91576},"unit-5-001":{"file":"./audio/us-jenny/unit-5.mp3","start":0.1,"duration":1.52609},"unit-5-002":{"file":"./audio/us-jenny/unit-5.mp3","start":1.57609,"duration":1.60326},"unit-5-003":{"file":"./audio/us-jenny/unit-5.mp3","start":3.17935,"duration":1.88859},"unit-5-004":{"file":"./audio/us-jenny/unit-5.mp3","start":5.06793,"duration":1.68478},"unit-5-005":{"file":"./audio/us-jenny/unit-5.mp3","start":6.75272,"duration":1.57609},"unit-5-006":{"file":"./audio/us-jenny/unit-5.mp3","start":8.3288,"duration":1.75272},"unit-5-007":{"file":"./audio/us-jenny/unit-5.mp3","start":10.08152,"duration":1.48098},"unit-5-008":{"file":"./audio/us-jenny/unit-5.mp3","start":11.5625,"duration":1.69837},"unit-5-009":{"file":"./audio/us-jenny/unit-5.mp3","start":13.26087,"duration":1.57609},"unit-5-010":{"file":"./audio/us-jenny/unit-5.mp3","start":14.83696,"duration":1.48098},"unit-5-011":{"file":"./audio/us-jenny/unit-5.mp3","start":16.31793,"duration":1.60326},"unit-5-012":{"file":"./audio/us-jenny/unit-5.mp3","start":17.9212,"duration":1.6712},"unit-5-013":{"file":"./audio/us-jenny/unit-5.mp3","start":19.59239,"duration":1.39946},"unit-5-014":{"file":"./audio/us-jenny/unit-5.mp3","start":20.99185,"duration":1.71196},"unit-5-015":{"file":"./audio/us-jenny/unit-5.mp3","start":22.7038,"duration":1.99728},"unit-5-016":{"file":"./audio/us-jenny/unit-5.mp3","start":24.70109,"duration":1.99728},"unit-5-017":{"file":"./audio/us-jenny/unit-5.mp3","start":26.69837,"duration":1.72554},"unit-5-018":{"file":"./audio/us-jenny/unit-5.mp3","start":28.42391,"duration":1.49457},"unit-5-019":{"file":"./audio/us-jenny/unit-5.mp3","start":29.91848,"duration":1.42663},"unit-5-020":{"file":"./audio/us-jenny/unit-5.mp3","start":31.34511,"duration":1.63043},"unit-5-021":{"file":"./audio/us-jenny/unit-5.mp3","start":32.97554,"duration":1.875},"unit-5-022":{"file":"./audio/us-jenny/unit-5.mp3","start":34.85054,"duration":1.57609},"unit-5-023":{"file":"./audio/us-jenny/unit-5.mp3","start":36.42663,"duration":1.64402},"unit-5-024":{"file":"./audio/us-jenny/unit-5.mp3","start":38.07065,"duration":1.42663},"unit-5-025":{"file":"./audio/us-jenny/unit-5.mp3","start":39.49728,"duration":1.60326},"unit-5-026":{"file":"./audio/us-jenny/unit-5.mp3","start":41.10054,"duration":1.97011},"unit-5-027":{"file":"./audio/us-jenny/unit-5.mp3","start":43.07065,"duration":1.60326},"unit-5-028":{"file":"./audio/us-jenny/unit-5.mp3","start":44.67391,"duration":1.54891},"unit-5-029":{"file":"./audio/us-jenny/unit-5.mp3","start":46.22283,"duration":1.46739},"unit-5-030":{"file":"./audio/us-jenny/unit-5.mp3","start":47.69022,"duration":1.75272},"unit-5-031":{"file":"./audio/us-jenny/unit-5.mp3","start":49.44293,"duration":1.99728},"unit-5-032":{"file":"./audio/us-jenny/unit-5.mp3","start":51.44022,"duration":1.71196},"unit-5-033":{"file":"./audio/us-jenny/unit-5.mp3","start":53.15217,"duration":1.48098},"unit-5-034":{"file":"./audio/us-jenny/unit-5.mp3","start":54.63315,"duration":1.75272},"unit-5-035":{"file":"./audio/us-jenny/unit-5.mp3","start":56.38587,"duration":1.52174},"unit-5-036":{"file":"./audio/us-jenny/unit-5.mp3","start":57.90761,"duration":1.64402},"unit-5-037":{"file":"./audio/us-jenny/unit-5.mp3","start":59.55163,"duration":1.71196},"unit-5-038":{"file":"./audio/us-jenny/unit-5.mp3","start":61.26359,"duration":1.73913},"unit-5-039":{"file":"./audio/us-jenny/unit-5.mp3","start":63.00272,"duration":1.53533},"unit-5-040":{"file":"./audio/us-jenny/unit-5.mp3","start":64.53804,"duration":1.875},"unit-5-041":{"file":"./audio/us-jenny/unit-5.mp3","start":66.41304,"duration":1.61685},"unit-5-042":{"file":"./audio/us-jenny/unit-5.mp3","start":68.02989,"duration":1.64402},"unit-5-043":{"file":"./audio/us-jenny/unit-5.mp3","start":69.67391,"duration":1.5625},"unit-5-044":{"file":"./audio/us-jenny/unit-5.mp3","start":71.23641,"duration":2.0788},"unit-5-045":{"file":"./audio/us-jenny/unit-5.mp3","start":73.31522,"duration":1.64402},"unit-5-046":{"file":"./audio/us-jenny/unit-5.mp3","start":74.95924,"duration":1.5625},"unit-5-047":{"file":"./audio/us-jenny/unit-5.mp3","start":76.52174,"duration":1.4538},"unit-5-048":{"file":"./audio/us-jenny/unit-5.mp3","start":77.97554,"duration":1.7663},"unit-5-049":{"file":"./audio/us-jenny/unit-5.mp3","start":79.74185,"duration":1.75272},"unit-5-050":{"file":"./audio/us-jenny/unit-5.mp3","start":81.49456,"duration":1.68478},"unit-5-051":{"file":"./audio/us-jenny/unit-5.mp3","start":83.17935,"duration":1.84783},"unit-5-052":{"file":"./audio/us-jenny/unit-5.mp3","start":85.02717,"duration":1.48098},"unit-5-053":{"file":"./audio/us-jenny/unit-5.mp3","start":86.50815,"duration":1.7663},"unit-5-054":{"file":"./audio/us-jenny/unit-5.mp3","start":88.27445,"duration":1.54891},"unit-5-055":{"file":"./audio/us-jenny/unit-5.mp3","start":89.82337,"duration":1.82065},"unit-5-056":{"file":"./audio/us-jenny/unit-5.mp3","start":91.64402,"duration":2.3913},"unit-6-001":{"file":"./audio/us-jenny/unit-6.mp3","start":0.1,"duration":2.0288},"unit-6-002":{"file":"./audio/us-jenny/unit-6.mp3","start":2.0788,"duration":1.65761},"unit-6-003":{"file":"./audio/us-jenny/unit-6.mp3","start":3.73641,"duration":1.46739},"unit-6-004":{"file":"./audio/us-jenny/unit-6.mp3","start":5.2038,"duration":1.63043},"unit-6-005":{"file":"./audio/us-jenny/unit-6.mp3","start":6.83424,"duration":1.69837},"unit-6-006":{"file":"./audio/us-jenny/unit-6.mp3","start":8.53261,"duration":1.4538},"unit-6-007":{"file":"./audio/us-jenny/unit-6.mp3","start":9.98641,"duration":1.52174},"unit-6-008":{"file":"./audio/us-jenny/unit-6.mp3","start":11.50815,"duration":1.52174},"unit-6-009":{"file":"./audio/us-jenny/unit-6.mp3","start":13.02989,"duration":1.38587},"unit-6-010":{"file":"./audio/us-jenny/unit-6.mp3","start":14.41576,"duration":1.64402},"unit-6-011":{"file":"./audio/us-jenny/unit-6.mp3","start":16.05978,"duration":1.68478},"unit-6-012":{"file":"./audio/us-jenny/unit-6.mp3","start":17.74456,"duration":1.57609},"unit-6-013":{"file":"./audio/us-jenny/unit-6.mp3","start":19.32065,"duration":1.7663},"unit-6-014":{"file":"./audio/us-jenny/unit-6.mp3","start":21.08696,"duration":1.60326},"unit-6-015":{"file":"./audio/us-jenny/unit-6.mp3","start":22.69022,"duration":1.7663},"unit-6-016":{"file":"./audio/us-jenny/unit-6.mp3","start":24.45652,"duration":1.73913},"unit-6-017":{"file":"./audio/us-jenny/unit-6.mp3","start":26.19565,"duration":1.69837},"unit-6-018":{"file":"./audio/us-jenny/unit-6.mp3","start":27.89402,"duration":1.65761},"unit-6-019":{"file":"./audio/us-jenny/unit-6.mp3","start":29.55163,"duration":1.61685},"unit-6-020":{"file":"./audio/us-jenny/unit-6.mp3","start":31.16848,"duration":2.03804},"unit-6-021":{"file":"./audio/us-jenny/unit-6.mp3","start":33.20652,"duration":1.42663},"unit-6-022":{"file":"./audio/us-jenny/unit-6.mp3","start":34.63315,"duration":1.69837},"unit-6-023":{"file":"./audio/us-jenny/unit-6.mp3","start":36.33152,"duration":1.63043},"unit-6-024":{"file":"./audio/us-jenny/unit-6.mp3","start":37.96196,"duration":1.48098},"unit-6-025":{"file":"./audio/us-jenny/unit-6.mp3","start":39.44293,"duration":1.52174},"unit-6-026":{"file":"./audio/us-jenny/unit-6.mp3","start":40.96467,"duration":1.77989},"unit-6-027":{"file":"./audio/us-jenny/unit-6.mp3","start":42.74456,"duration":1.71196},"unit-6-028":{"file":"./audio/us-jenny/unit-6.mp3","start":44.45652,"duration":1.54891},"unit-6-029":{"file":"./audio/us-jenny/unit-6.mp3","start":46.00543,"duration":1.52174},"unit-6-030":{"file":"./audio/us-jenny/unit-6.mp3","start":47.52717,"duration":1.58967},"unit-6-031":{"file":"./audio/us-jenny/unit-6.mp3","start":49.11685,"duration":1.875},"unit-6-032":{"file":"./audio/us-jenny/unit-6.mp3","start":50.99185,"duration":2.02446},"unit-6-033":{"file":"./audio/us-jenny/unit-6.mp3","start":53.0163,"duration":1.5625},"unit-6-034":{"file":"./audio/us-jenny/unit-6.mp3","start":54.5788,"duration":2.13315},"unit-6-035":{"file":"./audio/us-jenny/unit-6.mp3","start":56.71196,"duration":1.97011},"unit-6-036":{"file":"./audio/us-jenny/unit-6.mp3","start":58.68206,"duration":1.46739},"unit-6-037":{"file":"./audio/us-jenny/unit-6.mp3","start":60.14946,"duration":1.52174},"unit-6-038":{"file":"./audio/us-jenny/unit-6.mp3","start":61.67119,"duration":1.49457},"unit-6-039":{"file":"./audio/us-jenny/unit-6.mp3","start":63.16576,"duration":1.46739},"unit-6-040":{"file":"./audio/us-jenny/unit-6.mp3","start":64.63315,"duration":1.71196},"unit-6-041":{"file":"./audio/us-jenny/unit-6.mp3","start":66.34511,"duration":1.54891},"unit-6-042":{"file":"./audio/us-jenny/unit-6.mp3","start":67.89402,"duration":1.50815},"unit-6-043":{"file":"./audio/us-jenny/unit-6.mp3","start":69.40217,"duration":1.49457},"unit-6-044":{"file":"./audio/us-jenny/unit-6.mp3","start":70.89674,"duration":1.5625},"unit-6-045":{"file":"./audio/us-jenny/unit-6.mp3","start":72.45924,"duration":1.50815},"unit-6-046":{"file":"./audio/us-jenny/unit-6.mp3","start":73.96739,"duration":1.72554},"unit-6-047":{"file":"./audio/us-jenny/unit-6.mp3","start":75.69293,"duration":1.7663},"unit-6-048":{"file":"./audio/us-jenny/unit-6.mp3","start":77.45924,"duration":1.50815},"unit-6-049":{"file":"./audio/us-jenny/unit-6.mp3","start":78.96739,"duration":1.58967},"unit-6-050":{"file":"./audio/us-jenny/unit-6.mp3","start":80.55706,"duration":1.39946},"unit-6-051":{"file":"./audio/us-jenny/unit-6.mp3","start":81.95652,"duration":1.73913},"unit-6-052":{"file":"./audio/us-jenny/unit-6.mp3","start":83.69565,"duration":1.60326},"unit-6-053":{"file":"./audio/us-jenny/unit-6.mp3","start":85.29891,"duration":1.49457},"unit-6-054":{"file":"./audio/us-jenny/unit-6.mp3","start":86.79348,"duration":1.42663},"unit-6-055":{"file":"./audio/us-jenny/unit-6.mp3","start":88.22011,"duration":1.50815},"unit-6-056":{"file":"./audio/us-jenny/unit-6.mp3","start":89.72826,"duration":1.80707},"unit-6-057":{"file":"./audio/us-jenny/unit-6.mp3","start":91.53532,"duration":2.02446},"unit-6-058":{"file":"./audio/us-jenny/unit-6.mp3","start":93.55978,"duration":1.80707},"unit-7-001":{"file":"./audio/us-jenny/unit-7.mp3","start":0.1,"duration":1.56685},"unit-7-002":{"file":"./audio/us-jenny/unit-7.mp3","start":1.61685,"duration":1.6712},"unit-7-003":{"file":"./audio/us-jenny/unit-7.mp3","start":3.28804,"duration":1.86141},"unit-7-004":{"file":"./audio/us-jenny/unit-7.mp3","start":5.14946,"duration":1.73913},"unit-7-005":{"file":"./audio/us-jenny/unit-7.mp3","start":6.88859,"duration":1.65761},"unit-7-006":{"file":"./audio/us-jenny/unit-7.mp3","start":8.5462,"duration":1.4538},"unit-7-007":{"file":"./audio/us-jenny/unit-7.mp3","start":10.0,"duration":1.82065},"unit-7-008":{"file":"./audio/us-jenny/unit-7.mp3","start":11.82065,"duration":1.50815},"unit-7-009":{"file":"./audio/us-jenny/unit-7.mp3","start":13.3288,"duration":1.5625},"unit-7-010":{"file":"./audio/us-jenny/unit-7.mp3","start":14.8913,"duration":1.61685},"unit-7-011":{"file":"./audio/us-jenny/unit-7.mp3","start":16.50815,"duration":1.46739},"unit-7-012":{"file":"./audio/us-jenny/unit-7.mp3","start":17.97554,"duration":1.52174},"unit-7-013":{"file":"./audio/us-jenny/unit-7.mp3","start":19.49728,"duration":1.60326},"unit-7-014":{"file":"./audio/us-jenny/unit-7.mp3","start":21.10054,"duration":1.41304},"unit-7-015":{"file":"./audio/us-jenny/unit-7.mp3","start":22.51359,"duration":1.54891},"unit-7-016":{"file":"./audio/us-jenny/unit-7.mp3","start":24.0625,"duration":1.64402},"unit-7-017":{"file":"./audio/us-jenny/unit-7.mp3","start":25.70652,"duration":1.77989},"unit-7-018":{"file":"./audio/us-jenny/unit-7.mp3","start":27.48641,"duration":1.6712},"unit-7-019":{"file":"./audio/us-jenny/unit-7.mp3","start":29.15761,"duration":1.86141},"unit-7-020":{"file":"./audio/us-jenny/unit-7.mp3","start":31.01902,"duration":1.75272},"unit-7-021":{"file":"./audio/us-jenny/unit-7.mp3","start":32.77174,"duration":1.60326},"unit-7-022":{"file":"./audio/us-jenny/unit-7.mp3","start":34.375,"duration":1.73913},"unit-7-023":{"file":"./audio/us-jenny/unit-7.mp3","start":36.11413,"duration":1.5625},"unit-7-024":{"file":"./audio/us-jenny/unit-7.mp3","start":37.67663,"duration":1.42663},"unit-7-025":{"file":"./audio/us-jenny/unit-7.mp3","start":39.10326,"duration":1.68478},"unit-7-026":{"file":"./audio/us-jenny/unit-7.mp3","start":40.78804,"duration":1.60326},"unit-7-027":{"file":"./audio/us-jenny/unit-7.mp3","start":42.3913,"duration":1.42663},"unit-7-028":{"file":"./audio/us-jenny/unit-7.mp3","start":43.81793,"duration":1.61685},"unit-7-029":{"file":"./audio/us-jenny/unit-7.mp3","start":45.43478,"duration":1.49457},"unit-7-030":{"file":"./audio/us-jenny/unit-7.mp3","start":46.92935,"duration":1.54891},"unit-7-031":{"file":"./audio/us-jenny/unit-7.mp3","start":48.47826,"duration":1.77989},"unit-7-032":{"file":"./audio/us-jenny/unit-7.mp3","start":50.25815,"duration":1.73913},"unit-7-033":{"file":"./audio/us-jenny/unit-7.mp3","start":51.99728,"duration":1.48098},"unit-7-034":{"file":"./audio/us-jenny/unit-7.mp3","start":53.47826,"duration":1.73913},"unit-7-035":{"file":"./audio/us-jenny/unit-7.mp3","start":55.21739,"duration":1.90217},"unit-7-036":{"file":"./audio/us-jenny/unit-7.mp3","start":57.11956,"duration":1.63043},"unit-7-037":{"file":"./audio/us-jenny/unit-7.mp3","start":58.75,"duration":1.50815},"unit-7-038":{"file":"./audio/us-jenny/unit-7.mp3","start":60.25815,"duration":1.68478},"unit-7-039":{"file":"./audio/us-jenny/unit-7.mp3","start":61.94293,"duration":1.46739},"unit-7-040":{"file":"./audio/us-jenny/unit-7.mp3","start":63.41032,"duration":1.5625},"unit-7-041":{"file":"./audio/us-jenny/unit-7.mp3","start":64.97282,"duration":1.49457},"unit-7-042":{"file":"./audio/us-jenny/unit-7.mp3","start":66.46739,"duration":1.72554},"unit-7-043":{"file":"./audio/us-jenny/unit-7.mp3","start":68.19293,"duration":1.61685},"unit-7-044":{"file":"./audio/us-jenny/unit-7.mp3","start":69.80978,"duration":1.50815},"unit-7-045":{"file":"./audio/us-jenny/unit-7.mp3","start":71.31793,"duration":1.60326},"unit-7-046":{"file":"./audio/us-jenny/unit-7.mp3","start":72.92119,"duration":1.72554},"unit-7-047":{"file":"./audio/us-jenny/unit-7.mp3","start":74.64674,"duration":1.63043},"unit-7-048":{"file":"./audio/us-jenny/unit-7.mp3","start":76.27717,"duration":1.60326},"unit-7-049":{"file":"./audio/us-jenny/unit-7.mp3","start":77.88043,"duration":1.5625},"unit-7-050":{"file":"./audio/us-jenny/unit-7.mp3","start":79.44293,"duration":1.77989},"unit-8-001":{"file":"./audio/us-jenny/unit-8.mp3","start":0.1,"duration":1.58043},"unit-8-002":{"file":"./audio/us-jenny/unit-8.mp3","start":1.63043,"duration":2.21467},"unit-8-003":{"file":"./audio/us-jenny/unit-8.mp3","start":3.84511,"duration":1.49457},"unit-8-004":{"file":"./audio/us-jenny/unit-8.mp3","start":5.33967,"duration":1.73913},"unit-8-005":{"file":"./audio/us-jenny/unit-8.mp3","start":7.0788,"duration":1.52174},"unit-8-006":{"file":"./audio/us-jenny/unit-8.mp3","start":8.60054,"duration":1.5625},"unit-8-007":{"file":"./audio/us-jenny/unit-8.mp3","start":10.16304,"duration":1.63043},"unit-8-008":{"file":"./audio/us-jenny/unit-8.mp3","start":11.79348,"duration":1.73913},"unit-8-009":{"file":"./audio/us-jenny/unit-8.mp3","start":13.53261,"duration":1.46739},"unit-8-010":{"file":"./audio/us-jenny/unit-8.mp3","start":15.0,"duration":1.52174},"unit-8-011":{"file":"./audio/us-jenny/unit-8.mp3","start":16.52174,"duration":1.61685},"unit-8-012":{"file":"./audio/us-jenny/unit-8.mp3","start":18.13859,"duration":1.57609},"unit-8-013":{"file":"./audio/us-jenny/unit-8.mp3","start":19.71467,"duration":1.48098},"unit-8-014":{"file":"./audio/us-jenny/unit-8.mp3","start":21.19565,"duration":1.63043},"unit-8-015":{"file":"./audio/us-jenny/unit-8.mp3","start":22.82609,"duration":1.68478},"unit-8-016":{"file":"./audio/us-jenny/unit-8.mp3","start":24.51087,"duration":1.58967},"unit-8-017":{"file":"./audio/us-jenny/unit-8.mp3","start":26.10054,"duration":1.63043},"unit-8-018":{"file":"./audio/us-jenny/unit-8.mp3","start":27.73098,"duration":1.58967},"unit-8-019":{"file":"./audio/us-jenny/unit-8.mp3","start":29.32065,"duration":1.58967},"unit-8-020":{"file":"./audio/us-jenny/unit-8.mp3","start":30.91033,"duration":1.73913},"unit-8-021":{"file":"./audio/us-jenny/unit-8.mp3","start":32.64946,"duration":1.7663},"unit-8-022":{"file":"./audio/us-jenny/unit-8.mp3","start":34.41576,"duration":1.52174},"unit-8-023":{"file":"./audio/us-jenny/unit-8.mp3","start":35.9375,"duration":1.92935},"unit-8-024":{"file":"./audio/us-jenny/unit-8.mp3","start":37.86685,"duration":1.7663},"unit-8-025":{"file":"./audio/us-jenny/unit-8.mp3","start":39.63315,"duration":1.52174},"unit-8-026":{"file":"./audio/us-jenny/unit-8.mp3","start":41.15489,"duration":1.49457},"unit-8-027":{"file":"./audio/us-jenny/unit-8.mp3","start":42.64946,"duration":1.57609},"unit-8-028":{"file":"./audio/us-jenny/unit-8.mp3","start":44.22554,"duration":1.44022},"unit-8-029":{"file":"./audio/us-jenny/unit-8.mp3","start":45.66576,"duration":1.63043},"unit-8-030":{"file":"./audio/us-jenny/unit-8.mp3","start":47.29619,"duration":1.63043},"unit-8-031":{"file":"./audio/us-jenny/unit-8.mp3","start":48.92663,"duration":1.58967},"unit-8-032":{"file":"./audio/us-jenny/unit-8.mp3","start":50.5163,"duration":1.69837},"unit-8-033":{"file":"./audio/us-jenny/unit-8.mp3","start":52.21467,"duration":1.54891},"unit-8-034":{"file":"./audio/us-jenny/unit-8.mp3","start":53.76359,"duration":1.6712},"unit-8-035":{"file":"./audio/us-jenny/unit-8.mp3","start":55.43478,"duration":1.46739},"unit-8-036":{"file":"./audio/us-jenny/unit-8.mp3","start":56.90217,"duration":1.77989},"unit-8-037":{"file":"./audio/us-jenny/unit-8.mp3","start":58.68206,"duration":1.65761},"unit-8-038":{"file":"./audio/us-jenny/unit-8.mp3","start":60.33967,"duration":1.5625},"unit-8-039":{"file":"./audio/us-jenny/unit-8.mp3","start":61.90217,"duration":1.86141},"unit-8-040":{"file":"./audio/us-jenny/unit-8.mp3","start":63.76359,"duration":1.44022},"unit-8-041":{"file":"./audio/us-jenny/unit-8.mp3","start":65.2038,"duration":1.73913},"unit-8-042":{"file":"./audio/us-jenny/unit-8.mp3","start":66.94293,"duration":1.38587},"unit-8-043":{"file":"./audio/us-jenny/unit-8.mp3","start":68.3288,"duration":1.46739},"unit-8-044":{"file":"./audio/us-jenny/unit-8.mp3","start":69.79619,"duration":1.61685},"unit-8-045":{"file":"./audio/us-jenny/unit-8.mp3","start":71.41304,"duration":1.5625},"unit-8-046":{"file":"./audio/us-jenny/unit-8.mp3","start":72.97554,"duration":2.43207},"unit-8-047":{"file":"./audio/us-jenny/unit-8.mp3","start":75.40761,"duration":1.68478},"unit-8-048":{"file":"./audio/us-jenny/unit-8.mp3","start":77.09239,"duration":1.71196},"unit-8-049":{"file":"./audio/us-jenny/unit-8.mp3","start":78.80435,"duration":1.75272},"unit-8-050":{"file":"./audio/us-jenny/unit-8.mp3","start":80.55706,"duration":1.72554},"unit-8-051":{"file":"./audio/us-jenny/unit-8.mp3","start":82.28261,"duration":1.60326},"unit-8-052":{"file":"./audio/us-jenny/unit-8.mp3","start":83.88587,"duration":1.60326},"unit-8-053":{"file":"./audio/us-jenny/unit-8.mp3","start":85.48913,"duration":1.52174},"unit-8-054":{"file":"./audio/us-jenny/unit-8.mp3","start":87.01087,"duration":1.4538},"unit-8-055":{"file":"./audio/us-jenny/unit-8.mp3","start":88.46467,"duration":1.99728},"unit-8-056":{"file":"./audio/us-jenny/unit-8.mp3","start":90.46195,"duration":1.61685},"unit-8-057":{"file":"./audio/us-jenny/unit-8.mp3","start":92.0788,"duration":1.5625},"unit-8-058":{"file":"./audio/us-jenny/unit-8.mp3","start":93.6413,"duration":2.09239},"unit-8-059":{"file":"./audio/us-jenny/unit-8.mp3","start":95.73369,"duration":1.50815},"unit-8-060":{"file":"./audio/us-jenny/unit-8.mp3","start":97.24185,"duration":1.71196},"unit-8-061":{"file":"./audio/us-jenny/unit-8.mp3","start":98.9538,"duration":1.65761},"unit-8-062":{"file":"./audio/us-jenny/unit-8.mp3","start":100.61141,"duration":1.54891},"unit-8-063":{"file":"./audio/us-jenny/unit-8.mp3","start":102.16032,"duration":1.77989},"unit-8-064":{"file":"./audio/us-jenny/unit-8.mp3","start":103.94022,"duration":2.51359},"unit-8-065":{"file":"./audio/us-jenny/unit-8.mp3","start":106.4538,"duration":1.7663},"unit-8-066":{"file":"./audio/us-jenny/unit-8.mp3","start":108.22011,"duration":1.68478}},"pack:us-guy":{"unit-1-001":{"file":"./audio/us-guy/unit-1.mp3","start":0.1,"duration":1.67554},"unit-1-002":{"file":"./audio/us-guy/unit-1.mp3","start":1.72554,"duration":1.82065},"unit-1-003":{"file":"./audio/us-guy/unit-1.mp3","start":3.5462,"duration":1.63043},"unit-1-004":{"file":"./audio/us-guy/unit-1.mp3","start":5.17663,"duration":1.61685},"unit-1-005":{"file":"./audio/us-guy/unit-1.mp3","start":6.79348,"duration":1.64402},"unit-1-006":{"file":"./audio/us-guy/unit-1.mp3","start":8.4375,"duration":1.57609},"unit-1-007":{"file":"./audio/us-guy/unit-1.mp3","start":10.01359,"duration":1.88859},"unit-1-008":{"file":"./audio/us-guy/unit-1.mp3","start":11.90217,"duration":1.84783},"unit-1-009":{"file":"./audio/us-guy/unit-1.mp3","start":13.75,"duration":1.6712},"unit-1-010":{"file":"./audio/us-guy/unit-1.mp3","start":15.4212,"duration":1.68478},"unit-1-011":{"file":"./audio/us-guy/unit-1.mp3","start":17.10598,"duration":1.5625},"unit-1-012":{"file":"./audio/us-guy/unit-1.mp3","start":18.66848,"duration":1.54891},"unit-1-013":{"file":"./audio/us-guy/unit-1.mp3","start":20.21739,"duration":1.63043},"unit-1-014":{"file":"./audio/us-guy/unit-1.mp3","start":21.84783,"duration":1.57609},"unit-1-015":{"file":"./audio/us-guy/unit-1.mp3","start":23.42391,"duration":1.60326},"unit-1-016":{"file":"./audio/us-guy/unit-1.mp3","start":25.02717,"duration":1.86141},"unit-1-017":{"file":"./audio/us-guy/unit-1.mp3","start":26.88859,"duration":1.60326},"unit-1-018":{"file":"./audio/us-guy/unit-1.mp3","start":28.49185,"duration":1.54891},"unit-1-019":{"file":"./audio/us-guy/unit-1.mp3","start":30.04076,"duration":1.50815},"unit-1-020":{"file":"./audio/us-guy/unit-1.mp3","start":31.54891,"duration":1.54891},"unit-1-021":{"file":"./audio/us-guy/unit-1.mp3","start":33.09783,"duration":1.49457},"unit-1-022":{"file":"./audio/us-guy/unit-1.mp3","start":34.59239,"duration":1.65761},"unit-1-023":{"file":"./audio/us-guy/unit-1.mp3","start":36.25,"duration":1.63043},"unit-1-024":{"file":"./audio/us-guy/unit-1.mp3","start":37.88043,"duration":1.64402},"unit-1-025":{"file":"./audio/us-guy/unit-1.mp3","start":39.52446,"duration":1.71196},"unit-1-026":{"file":"./audio/us-guy/unit-1.mp3","start":41.23641,"duration":1.86141},"unit-1-027":{"file":"./audio/us-guy/unit-1.mp3","start":43.09783,"duration":1.88859},"unit-1-028":{"file":"./audio/us-guy/unit-1.mp3","start":44.98641,"duration":1.72554},"unit-1-029":{"file":"./audio/us-guy/unit-1.mp3","start":46.71196,"duration":1.64402},"unit-1-030":{"file":"./audio/us-guy/unit-1.mp3","start":48.35598,"duration":1.69837},"unit-1-031":{"file":"./audio/us-guy/unit-1.mp3","start":50.05435,"duration":1.88859},"unit-1-032":{"file":"./audio/us-guy/unit-1.mp3","start":51.94293,"duration":1.7663},"unit-1-033":{"file":"./audio/us-guy/unit-1.mp3","start":53.70924,"duration":1.79348},"unit-1-034":{"file":"./audio/us-guy/unit-1.mp3","start":55.50272,"duration":1.6712},"unit-1-035":{"file":"./audio/us-guy/unit-1.mp3","start":57.17391,"duration":1.57609},"unit-1-036":{"file":"./audio/us-guy/unit-1.mp3","start":58.75,"duration":1.69837},"unit-1-037":{"file":"./audio/us-guy/unit-1.mp3","start":60.44837,"duration":1.65761},"unit-1-038":{"file":"./audio/us-guy/unit-1.mp3","start":62.10598,"duration":1.75272},"unit-1-039":{"file":"./audio/us-guy/unit-1.mp3","start":63.85869,"duration":1.54891},"unit-1-040":{"file":"./audio/us-guy/unit-1.mp3","start":65.40761,"duration":1.72554},"unit-1-041":{"file":"./audio/us-guy/unit-1.mp3","start":67.13315,"duration":2.01087},"unit-1-042":{"file":"./audio/us-guy/unit-1.mp3","start":69.14402,"duration":1.57609},"unit-1-043":{"file":"./audio/us-guy/unit-1.mp3","start":70.72011,"duration":1.5625},"unit-1-044":{"file":"./audio/us-guy/unit-1.mp3","start":72.28261,"duration":1.54891},"unit-1-045":{"file":"./audio/us-guy/unit-1.mp3","start":73.83152,"duration":1.92935},"unit-1-046":{"file":"./audio/us-guy/unit-1.mp3","start":75.76087,"duration":1.79348},"unit-2-001":{"file":"./audio/us-guy/unit-2.mp3","start":0.1,"duration":1.53967},"unit-2-002":{"file":"./audio/us-guy/unit-2.mp3","start":1.58967,"duration":1.68478},"unit-2-003":{"file":"./audio/us-guy/unit-2.mp3","start":3.27446,"duration":1.68478},"unit-2-004":{"file":"./audio/us-guy/unit-2.mp3","start":4.95924,"duration":2.25543},"unit-2-005":{"file":"./audio/us-guy/unit-2.mp3","start":7.21467,"duration":1.71196},"unit-2-006":{"file":"./audio/us-guy/unit-2.mp3","start":8.92663,"duration":1.77989},"unit-2-007":{"file":"./audio/us-guy/unit-2.mp3","start":10.70652,"duration":1.60326},"unit-2-008":{"file":"./audio/us-guy/unit-2.mp3","start":12.30978,"duration":1.86141},"unit-2-009":{"file":"./audio/us-guy/unit-2.mp3","start":14.1712,"duration":1.71196},"unit-2-010":{"file":"./audio/us-guy/unit-2.mp3","start":15.88315,"duration":1.65761},"unit-2-011":{"file":"./audio/us-guy/unit-2.mp3","start":17.54076,"duration":1.53533},"unit-2-012":{"file":"./audio/us-guy/unit-2.mp3","start":19.07609,"duration":1.71196},"unit-2-013":{"file":"./audio/us-guy/unit-2.mp3","start":20.78804,"duration":1.44022},"unit-2-014":{"file":"./audio/us-guy/unit-2.mp3","start":22.22826,"duration":1.6712},"unit-2-015":{"file":"./audio/us-guy/unit-2.mp3","start":23.89946,"duration":1.7663},"unit-2-016":{"file":"./audio/us-guy/unit-2.mp3","start":25.66576,"duration":1.68478},"unit-2-017":{"file":"./audio/us-guy/unit-2.mp3","start":27.35054,"duration":1.60326},"unit-2-018":{"file":"./audio/us-guy/unit-2.mp3","start":28.9538,"duration":1.63043},"unit-2-019":{"file":"./audio/us-guy/unit-2.mp3","start":30.58424,"duration":1.64402},"unit-2-020":{"file":"./audio/us-guy/unit-2.mp3","start":32.22826,"duration":1.75272},"unit-2-021":{"file":"./audio/us-guy/unit-2.mp3","start":33.98098,"duration":1.64402},"unit-2-022":{"file":"./audio/us-guy/unit-2.mp3","start":35.625,"duration":1.92935},"unit-2-023":{"file":"./audio/us-guy/unit-2.mp3","start":37.55435,"duration":1.72554},"unit-2-024":{"file":"./audio/us-guy/unit-2.mp3","start":39.27989,"duration":1.50815},"unit-2-025":{"file":"./audio/us-guy/unit-2.mp3","start":40.78804,"duration":1.9837},"unit-2-026":{"file":"./audio/us-guy/unit-2.mp3","start":42.77174,"duration":1.92935},"unit-2-027":{"file":"./audio/us-guy/unit-2.mp3","start":44.70109,"duration":1.5625},"unit-2-028":{"file":"./audio/us-guy/unit-2.mp3","start":46.26359,"duration":1.54891},"unit-2-029":{"file":"./audio/us-guy/unit-2.mp3","start":47.8125,"duration":1.80707},"unit-2-030":{"file":"./audio/us-guy/unit-2.mp3","start":49.61956,"duration":2.16033},"unit-2-031":{"file":"./audio/us-guy/unit-2.mp3","start":51.77989,"duration":1.53533},"unit-2-032":{"file":"./audio/us-guy/unit-2.mp3","start":53.31522,"duration":1.72554},"unit-2-033":{"file":"./audio/us-guy/unit-2.mp3","start":55.04076,"duration":1.52174},"unit-2-034":{"file":"./audio/us-guy/unit-2.mp3","start":56.5625,"duration":1.58967},"unit-2-035":{"file":"./audio/us-guy/unit-2.mp3","start":58.15217,"duration":1.68478},"unit-2-036":{"file":"./audio/us-guy/unit-2.mp3","start":59.83696,"duration":1.84783},"unit-2-037":{"file":"./audio/us-guy/unit-2.mp3","start":61.68478,"duration":1.65761},"unit-2-038":{"file":"./audio/us-guy/unit-2.mp3","start":63.34239,"duration":2.13315},"unit-2-039":{"file":"./audio/us-guy/unit-2.mp3","start":65.47554,"duration":1.54891},"unit-2-040":{"file":"./audio/us-guy/unit-2.mp3","start":67.02446,"duration":1.7663},"unit-2-041":{"file":"./audio/us-guy/unit-2.mp3","start":68.79076,"duration":1.52174},"unit-2-042":{"file":"./audio/us-guy/unit-2.mp3","start":70.3125,"duration":1.79348},"unit-2-043":{"file":"./audio/us-guy/unit-2.mp3","start":72.10598,"duration":1.79348},"unit-2-044":{"file":"./audio/us-guy/unit-2.mp3","start":73.89946,"duration":1.63043},"unit-2-045":{"file":"./audio/us-guy/unit-2.mp3","start":75.52989,"duration":1.6712},"unit-2-046":{"file":"./audio/us-guy/unit-2.mp3","start":77.20109,"duration":1.5625},"unit-2-047":{"file":"./audio/us-guy/unit-2.mp3","start":78.76359,"duration":1.54891},"unit-2-048":{"file":"./audio/us-guy/unit-2.mp3","start":80.3125,"duration":1.79348},"unit-2-049":{"file":"./audio/us-guy/unit-2.mp3","start":82.10598,"duration":1.91576},"unit-2-050":{"file":"./audio/us-guy/unit-2.mp3","start":84.02174,"duration":1.53533},"unit-2-051":{"file":"./audio/us-guy/unit-2.mp3","start":85.55706,"duration":1.73913},"unit-2-052":{"file":"./audio/us-guy/unit-2.mp3","start":87.29619,"duration":1.92935},"unit-2-053":{"file":"./audio/us-guy/unit-2.mp3","start":89.22554,"duration":1.80707},"unit-2-054":{"file":"./audio/us-guy/unit-2.mp3","start":91.03261,"duration":1.75272},"unit-2-055":{"file":"./audio/us-guy/unit-2.mp3","start":92.78532,"duration":2.01087},"unit-2-056":{"file":"./audio/us-guy/unit-2.mp3","start":94.79619,"duration":1.90217},"unit-3-001":{"file":"./audio/us-guy/unit-3.mp3","start":0.1,"duration":1.52609},"unit-3-002":{"file":"./audio/us-guy/unit-3.mp3","start":1.57609,"duration":1.68478},"unit-3-003":{"file":"./audio/us-guy/unit-3.mp3","start":3.26087,"duration":1.5625},"unit-3-004":{"file":"./audio/us-guy/unit-3.mp3","start":4.82337,"duration":1.54891},"unit-3-005":{"file":"./audio/us-guy/unit-3.mp3","start":6.37228,"duration":1.54891},"unit-3-006":{"file":"./audio/us-guy/unit-3.mp3","start":7.9212,"duration":1.84783},"unit-3-007":{"file":"./audio/us-guy/unit-3.mp3","start":9.76902,"duration":1.68478},"unit-3-008":{"file":"./audio/us-guy/unit-3.mp3","start":11.4538,"duration":1.61685},"unit-3-009":{"file":"./audio/us-guy/unit-3.mp3","start":13.07065,"duration":1.61685},"unit-3-010":{"file":"./audio/us-guy/unit-3.mp3","start":14.6875,"duration":1.99728},"unit-3-011":{"file":"./audio/us-guy/unit-3.mp3","start":16.68478,"duration":1.64402},"unit-3-012":{"file":"./audio/us-guy/unit-3.mp3","start":18.3288,"duration":1.58967},"unit-3-013":{"file":"./audio/us-guy/unit-3.mp3","start":19.91848,"duration":1.49457},"unit-3-014":{"file":"./audio/us-guy/unit-3.mp3","start":21.41304,"duration":1.57609},"unit-3-015":{"file":"./audio/us-guy/unit-3.mp3","start":22.98913,"duration":1.60326},"unit-3-016":{"file":"./audio/us-guy/unit-3.mp3","start":24.59239,"duration":1.875},"unit-3-017":{"file":"./audio/us-guy/unit-3.mp3","start":26.46739,"duration":1.7663},"unit-3-018":{"file":"./audio/us-guy/unit-3.mp3","start":28.2337,"duration":1.68478},"unit-3-019":{"file":"./audio/us-guy/unit-3.mp3","start":29.91848,"duration":1.75272},"unit-3-020":{"file":"./audio/us-guy/unit-3.mp3","start":31.6712,"duration":1.92935},"unit-3-021":{"file":"./audio/us-guy/unit-3.mp3","start":33.60054,"duration":1.5625},"unit-3-022":{"file":"./audio/us-guy/unit-3.mp3","start":35.16304,"duration":1.83424},"unit-3-023":{"file":"./audio/us-guy/unit-3.mp3","start":36.99728,"duration":1.84783},"unit-3-024":{"file":"./audio/us-guy/unit-3.mp3","start":38.84511,"duration":1.69837},"unit-3-025":{"file":"./audio/us-guy/unit-3.mp3","start":40.54348,"duration":1.54891},"unit-3-026":{"file":"./audio/us-guy/unit-3.mp3","start":42.09239,"duration":1.58967},"unit-3-027":{"file":"./audio/us-guy/unit-3.mp3","start":43.68206,"duration":1.68478},"unit-3-028":{"file":"./audio/us-guy/unit-3.mp3","start":45.36685,"duration":1.875},"unit-3-029":{"file":"./audio/us-guy/unit-3.mp3","start":47.24185,"duration":1.94293},"unit-3-030":{"file":"./audio/us-guy/unit-3.mp3","start":49.18478,"duration":1.88859},"unit-3-031":{"file":"./audio/us-guy/unit-3.mp3","start":51.07337,"duration":1.77989},"unit-3-032":{"file":"./audio/us-guy/unit-3.mp3","start":52.85326,"duration":1.63043},"unit-3-033":{"file":"./audio/us-guy/unit-3.mp3","start":54.48369,"duration":1.83424},"unit-3-034":{"file":"./audio/us-guy/unit-3.mp3","start":56.31793,"duration":1.97011},"unit-3-035":{"file":"./audio/us-guy/unit-3.mp3","start":58.28804,"duration":1.68478},"unit-3-036":{"file":"./audio/us-guy/unit-3.mp3","start":59.97282,"duration":1.75272},"unit-3-037":{"file":"./audio/us-guy/unit-3.mp3","start":61.72554,"duration":1.7663},"unit-3-038":{"file":"./audio/us-guy/unit-3.mp3","start":63.49185,"duration":1.58967},"unit-3-039":{"file":"./audio/us-guy/unit-3.mp3","start":65.08152,"duration":1.88859},"unit-3-040":{"file":"./audio/us-guy/unit-3.mp3","start":66.97011,"duration":1.79348},"unit-3-041":{"file":"./audio/us-guy/unit-3.mp3","start":68.76359,"duration":1.48098},"unit-3-042":{"file":"./audio/us-guy/unit-3.mp3","start":70.24456,"duration":1.95652},"unit-3-043":{"file":"./audio/us-guy/unit-3.mp3","start":72.20109,"duration":1.94293},"unit-3-044":{"file":"./audio/us-guy/unit-3.mp3","start":74.14402,"duration":1.52174},"unit-3-045":{"file":"./audio/us-guy/unit-3.mp3","start":75.66576,"duration":1.82065},"unit-3-046":{"file":"./audio/us-guy/unit-3.mp3","start":77.48641,"duration":1.7663},"unit-3-047":{"file":"./audio/us-guy/unit-3.mp3","start":79.25272,"duration":1.4538},"unit-3-048":{"file":"./audio/us-guy/unit-3.mp3","start":80.70652,"duration":1.75272},"unit-3-049":{"file":"./audio/us-guy/unit-3.mp3","start":82.45924,"duration":1.60326},"unit-3-050":{"file":"./audio/us-guy/unit-3.mp3","start":84.0625,"duration":1.5625},"unit-3-051":{"file":"./audio/us-guy/unit-3.mp3","start":85.625,"duration":1.57609},"unit-3-052":{"file":"./audio/us-guy/unit-3.mp3","start":87.20109,"duration":1.64402},"unit-3-053":{"file":"./audio/us-guy/unit-3.mp3","start":88.84511,"duration":1.77989},"unit-4-001":{"file":"./audio/us-guy/unit-4.mp3","start":0.1,"duration":1.83859},"unit-4-002":{"file":"./audio/us-guy/unit-4.mp3","start":1.88859,"duration":1.63043},"unit-4-003":{"file":"./audio/us-guy/unit-4.mp3","start":3.51902,"duration":1.65761},"unit-4-004":{"file":"./audio/us-guy/unit-4.mp3","start":5.17663,"duration":1.61685},"unit-4-005":{"file":"./audio/us-guy/unit-4.mp3","start":6.79348,"duration":1.6712},"unit-4-006":{"file":"./audio/us-guy/unit-4.mp3","start":8.46467,"duration":1.65761},"unit-4-007":{"file":"./audio/us-guy/unit-4.mp3","start":10.12228,"duration":1.61685},"unit-4-008":{"file":"./audio/us-guy/unit-4.mp3","start":11.73913,"duration":1.53533},"unit-4-009":{"file":"./audio/us-guy/unit-4.mp3","start":13.27446,"duration":1.44022},"unit-4-010":{"file":"./audio/us-guy/unit-4.mp3","start":14.71467,"duration":2.11957},"unit-4-011":{"file":"./audio/us-guy/unit-4.mp3","start":16.83424,"duration":1.68478},"unit-4-012":{"file":"./audio/us-guy/unit-4.mp3","start":18.51902,"duration":1.63043},"unit-4-013":{"file":"./audio/us-guy/unit-4.mp3","start":20.14946,"duration":1.61685},"unit-4-014":{"file":"./audio/us-guy/unit-4.mp3","start":21.7663,"duration":1.77989},"unit-4-015":{"file":"./audio/us-guy/unit-4.mp3","start":23.5462,"duration":1.58967},"unit-4-016":{"file":"./audio/us-guy/unit-4.mp3","start":25.13587,"duration":1.65761},"unit-4-017":{"file":"./audio/us-guy/unit-4.mp3","start":26.79348,"duration":1.53533},"unit-4-018":{"file":"./audio/us-guy/unit-4.mp3","start":28.3288,"duration":1.61685},"unit-4-019":{"file":"./audio/us-guy/unit-4.mp3","start":29.94565,"duration":1.60326},"unit-4-020":{"file":"./audio/us-guy/unit-4.mp3","start":31.54891,"duration":1.53533},"unit-4-021":{"file":"./audio/us-guy/unit-4.mp3","start":33.08424,"duration":1.82065},"unit-4-022":{"file":"./audio/us-guy/unit-4.mp3","start":34.90489,"duration":1.6712},"unit-4-023":{"file":"./audio/us-guy/unit-4.mp3","start":36.57609,"duration":1.90217},"unit-4-024":{"file":"./audio/us-guy/unit-4.mp3","start":38.47826,"duration":1.57609},"unit-4-025":{"file":"./audio/us-guy/unit-4.mp3","start":40.05435,"duration":1.72554},"unit-4-026":{"file":"./audio/us-guy/unit-4.mp3","start":41.77989,"duration":1.58967},"unit-4-027":{"file":"./audio/us-guy/unit-4.mp3","start":43.36956,"duration":1.6712},"unit-4-028":{"file":"./audio/us-guy/unit-4.mp3","start":45.04076,"duration":1.49457},"unit-4-029":{"file":"./audio/us-guy/unit-4.mp3","start":46.53533,"duration":1.6712},"unit-4-030":{"file":"./audio/us-guy/unit-4.mp3","start":48.20652,"duration":1.71196},"unit-4-031":{"file":"./audio/us-guy/unit-4.mp3","start":49.91848,"duration":1.80707},"unit-4-032":{"file":"./audio/us-guy/unit-4.mp3","start":51.72554,"duration":1.58967},"unit-4-033":{"file":"./audio/us-guy/unit-4.mp3","start":53.31522,"duration":1.90217},"unit-4-034":{"file":"./audio/us-guy/unit-4.mp3","start":55.21739,"duration":1.5625},"unit-4-035":{"file":"./audio/us-guy/unit-4.mp3","start":56.77989,"duration":1.57609},"unit-4-036":{"file":"./audio/us-guy/unit-4.mp3","start":58.35598,"duration":1.64402},"unit-4-037":{"file":"./audio/us-guy/unit-4.mp3","start":60.0,"duration":1.5625},"unit-4-038":{"file":"./audio/us-guy/unit-4.mp3","start":61.5625,"duration":1.77989},"unit-4-039":{"file":"./audio/us-guy/unit-4.mp3","start":63.34239,"duration":1.58967},"unit-4-040":{"file":"./audio/us-guy/unit-4.mp3","start":64.93206,"duration":1.53533},"unit-4-041":{"file":"./audio/us-guy/unit-4.mp3","start":66.46739,"duration":1.64402},"unit-4-042":{"file":"./audio/us-guy/unit-4.mp3","start":68.11141,"duration":1.94293},"unit-4-043":{"file":"./audio/us-guy/unit-4.mp3","start":70.05435,"duration":1.79348},"unit-4-044":{"file":"./audio/us-guy/unit-4.mp3","start":71.84782,"duration":1.84783},"unit-4-045":{"file":"./audio/us-guy/unit-4.mp3","start":73.69565,"duration":1.63043},"unit-4-046":{"file":"./audio/us-guy/unit-4.mp3","start":75.32609,"duration":1.50815},"unit-4-047":{"file":"./audio/us-guy/unit-4.mp3","start":76.83424,"duration":1.77989},"unit-4-048":{"file":"./audio/us-guy/unit-4.mp3","start":78.61413,"duration":1.72554},"unit-4-049":{"file":"./audio/us-guy/unit-4.mp3","start":80.33967,"duration":1.60326},"unit-4-050":{"file":"./audio/us-guy/unit-4.mp3","start":81.94293,"duration":1.63043},"unit-4-051":{"file":"./audio/us-guy/unit-4.mp3","start":83.57337,"duration":1.60326},"unit-4-052":{"file":"./audio/us-guy/unit-4.mp3","start":85.17663,"duration":1.90217},"unit-4-053":{"file":"./audio/us-guy/unit-4.mp3","start":87.0788,"duration":1.72554},"unit-4-054":{"file":"./audio/us-guy/unit-4.mp3","start":88.80435,"duration":2.0788},"unit-4-055":{"file":"./audio/us-guy/unit-4.mp3","start":90.88315,"duration":1.83424},"unit-4-056":{"file":"./audio/us-guy/unit-4.mp3","start":92.71739,"duration":1.92935},"unit-5-001":{"file":"./audio/us-guy/unit-5.mp3","start":0.1,"duration":1.49891},"unit-5-002":{"file":"./audio/us-guy/unit-5.mp3","start":1.54891,"duration":1.83424},"unit-5-003":{"file":"./audio/us-guy/unit-5.mp3","start":3.38315,"duration":2.09239},"unit-5-004":{"file":"./audio/us-guy/unit-5.mp3","start":5.47554,"duration":1.73913},"unit-5-005":{"file":"./audio/us-guy/unit-5.mp3","start":7.21467,"duration":1.64402},"unit-5-006":{"file":"./audio/us-guy/unit-5.mp3","start":8.8587,"duration":1.86141},"unit-5-007":{"file":"./audio/us-guy/unit-5.mp3","start":10.72011,"duration":1.5625},"unit-5-008":{"file":"./audio/us-guy/unit-5.mp3","start":12.28261,"duration":1.71196},"unit-5-009":{"file":"./audio/us-guy/unit-5.mp3","start":13.99456,"duration":1.63043},"unit-5-010":{"file":"./audio/us-guy/unit-5.mp3","start":15.625,"duration":1.64402},"unit-5-011":{"file":"./audio/us-guy/unit-5.mp3","start":17.26902,"duration":1.61685},"unit-5-012":{"file":"./audio/us-guy/unit-5.mp3","start":18.88587,"duration":1.84783},"unit-5-013":{"file":"./audio/us-guy/unit-5.mp3","start":20.7337,"duration":1.54891},"unit-5-014":{"file":"./audio/us-guy/unit-5.mp3","start":22.28261,"duration":1.6712},"unit-5-015":{"file":"./audio/us-guy/unit-5.mp3","start":23.9538,"duration":1.95652},"unit-5-016":{"file":"./audio/us-guy/unit-5.mp3","start":25.91033,"duration":1.9837},"unit-5-017":{"file":"./audio/us-guy/unit-5.mp3","start":27.89402,"duration":1.77989},"unit-5-018":{"file":"./audio/us-guy/unit-5.mp3","start":29.67391,"duration":1.52174},"unit-5-019":{"file":"./audio/us-guy/unit-5.mp3","start":31.19565,"duration":1.48098},"unit-5-020":{"file":"./audio/us-guy/unit-5.mp3","start":32.67663,"duration":1.7663},"unit-5-021":{"file":"./audio/us-guy/unit-5.mp3","start":34.44293,"duration":1.91576},"unit-5-022":{"file":"./audio/us-guy/unit-5.mp3","start":36.35869,"duration":1.5625},"unit-5-023":{"file":"./audio/us-guy/unit-5.mp3","start":37.92119,"duration":1.75272},"unit-5-024":{"file":"./audio/us-guy/unit-5.mp3","start":39.67391,"duration":1.46739},"unit-5-025":{"file":"./audio/us-guy/unit-5.mp3","start":41.1413,"duration":1.77989},"unit-5-026":{"file":"./audio/us-guy/unit-5.mp3","start":42.92119,"duration":2.10598},"unit-5-027":{"file":"./audio/us-guy/unit-5.mp3","start":45.02717,"duration":1.6712},"unit-5-028":{"file":"./audio/us-guy/unit-5.mp3","start":46.69837,"duration":1.58967},"unit-5-029":{"file":"./audio/us-guy/unit-5.mp3","start":48.28804,"duration":1.57609},"unit-5-030":{"file":"./audio/us-guy/unit-5.mp3","start":49.86413,"duration":1.77989},"unit-5-031":{"file":"./audio/us-guy/unit-5.mp3","start":51.64402,"duration":2.0788},"unit-5-032":{"file":"./audio/us-guy/unit-5.mp3","start":53.72283,"duration":1.82065},"unit-5-033":{"file":"./audio/us-guy/unit-5.mp3","start":55.54348,"duration":1.61685},"unit-5-034":{"file":"./audio/us-guy/unit-5.mp3","start":57.16033,"duration":1.88859},"unit-5-035":{"file":"./audio/us-guy/unit-5.mp3","start":59.04891,"duration":1.54891},"unit-5-036":{"file":"./audio/us-guy/unit-5.mp3","start":60.59782,"duration":1.58967},"unit-5-037":{"file":"./audio/us-guy/unit-5.mp3","start":62.1875,"duration":1.77989},"unit-5-038":{"file":"./audio/us-guy/unit-5.mp3","start":63.96739,"duration":1.72554},"unit-5-039":{"file":"./audio/us-guy/unit-5.mp3","start":65.69293,"duration":1.61685},"unit-5-040":{"file":"./audio/us-guy/unit-5.mp3","start":67.30978,"duration":1.91576},"unit-5-041":{"file":"./audio/us-guy/unit-5.mp3","start":69.22554,"duration":1.65761},"unit-5-042":{"file":"./audio/us-guy/unit-5.mp3","start":70.88315,"duration":1.71196},"unit-5-043":{"file":"./audio/us-guy/unit-5.mp3","start":72.59511,"duration":1.54891},"unit-5-044":{"file":"./audio/us-guy/unit-5.mp3","start":74.14402,"duration":2.09239},"unit-5-045":{"file":"./audio/us-guy/unit-5.mp3","start":76.23641,"duration":1.75272},"unit-5-046":{"file":"./audio/us-guy/unit-5.mp3","start":77.98913,"duration":1.54891},"unit-5-047":{"file":"./audio/us-guy/unit-5.mp3","start":79.53804,"duration":1.53533},"unit-5-048":{"file":"./audio/us-guy/unit-5.mp3","start":81.07337,"duration":1.875},"unit-5-049":{"file":"./audio/us-guy/unit-5.mp3","start":82.94837,"duration":1.79348},"unit-5-050":{"file":"./audio/us-guy/unit-5.mp3","start":84.74185,"duration":1.84783},"unit-5-051":{"file":"./audio/us-guy/unit-5.mp3","start":86.58967,"duration":1.92935},"unit-5-052":{"file":"./audio/us-guy/unit-5.mp3","start":88.51902,"duration":1.53533},"unit-5-053":{"file":"./audio/us-guy/unit-5.mp3","start":90.05435,"duration":1.80707},"unit-5-054":{"file":"./audio/us-guy/unit-5.mp3","start":91.86141,"duration":1.60326},"unit-5-055":{"file":"./audio/us-guy/unit-5.mp3","start":93.46467,"duration":1.875},"unit-5-056":{"file":"./audio/us-guy/unit-5.mp3","start":95.33967,"duration":2.45924},"unit-6-001":{"file":"./audio/us-guy/unit-6.mp3","start":0.1,"duration":2.05598},"unit-6-002":{"file":"./audio/us-guy/unit-6.mp3","start":2.10598,"duration":1.64402},"unit-6-003":{"file":"./audio/us-guy/unit-6.mp3","start":3.75,"duration":1.58967},"unit-6-004":{"file":"./audio/us-guy/unit-6.mp3","start":5.33967,"duration":1.69837},"unit-6-005":{"file":"./audio/us-guy/unit-6.mp3","start":7.03804,"duration":1.68478},"unit-6-006":{"file":"./audio/us-guy/unit-6.mp3","start":8.72283,"duration":1.60326},"unit-6-007":{"file":"./audio/us-guy/unit-6.mp3","start":10.32609,"duration":1.58967},"unit-6-008":{"file":"./audio/us-guy/unit-6.mp3","start":11.91576,"duration":1.58967},"unit-6-009":{"file":"./audio/us-guy/unit-6.mp3","start":13.50543,"duration":1.53533},"unit-6-010":{"file":"./audio/us-guy/unit-6.mp3","start":15.04076,"duration":1.79348},"unit-6-011":{"file":"./audio/us-guy/unit-6.mp3","start":16.83424,"duration":1.84783},"unit-6-012":{"file":"./audio/us-guy/unit-6.mp3","start":18.68206,"duration":1.63043},"unit-6-013":{"file":"./audio/us-guy/unit-6.mp3","start":20.3125,"duration":1.92935},"unit-6-014":{"file":"./audio/us-guy/unit-6.mp3","start":22.24185,"duration":1.83424},"unit-6-015":{"file":"./audio/us-guy/unit-6.mp3","start":24.07609,"duration":1.7663},"unit-6-016":{"file":"./audio/us-guy/unit-6.mp3","start":25.84239,"duration":1.91576},"unit-6-017":{"file":"./audio/us-guy/unit-6.mp3","start":27.75815,"duration":1.875},"unit-6-018":{"file":"./audio/us-guy/unit-6.mp3","start":29.63315,"duration":1.69837},"unit-6-019":{"file":"./audio/us-guy/unit-6.mp3","start":31.33152,"duration":1.6712},"unit-6-020":{"file":"./audio/us-guy/unit-6.mp3","start":33.00272,"duration":2.09239},"unit-6-021":{"file":"./audio/us-guy/unit-6.mp3","start":35.09511,"duration":1.52174},"unit-6-022":{"file":"./audio/us-guy/unit-6.mp3","start":36.61685,"duration":1.65761},"unit-6-023":{"file":"./audio/us-guy/unit-6.mp3","start":38.27446,"duration":1.72554},"unit-6-024":{"file":"./audio/us-guy/unit-6.mp3","start":40.0,"duration":1.5625},"unit-6-025":{"file":"./audio/us-guy/unit-6.mp3","start":41.5625,"duration":1.58967},"unit-6-026":{"file":"./audio/us-guy/unit-6.mp3","start":43.15217,"duration":1.84783},"unit-6-027":{"file":"./audio/us-guy/unit-6.mp3","start":45.0,"duration":1.75272},"unit-6-028":{"file":"./audio/us-guy/unit-6.mp3","start":46.75272,"duration":1.53533},"unit-6-029":{"file":"./audio/us-guy/unit-6.mp3","start":48.28804,"duration":1.63043},"unit-6-030":{"file":"./audio/us-guy/unit-6.mp3","start":49.91848,"duration":1.60326},"unit-6-031":{"file":"./audio/us-guy/unit-6.mp3","start":51.52174,"duration":1.97011},"unit-6-032":{"file":"./audio/us-guy/unit-6.mp3","start":53.49185,"duration":1.99728},"unit-6-033":{"file":"./audio/us-guy/unit-6.mp3","start":55.48913,"duration":1.71196},"unit-6-034":{"file":"./audio/us-guy/unit-6.mp3","start":57.20109,"duration":2.14674},"unit-6-035":{"file":"./audio/us-guy/unit-6.mp3","start":59.34783,"duration":2.05163},"unit-6-036":{"file":"./audio/us-guy/unit-6.mp3","start":61.39946,"duration":1.61685},"unit-6-037":{"file":"./audio/us-guy/unit-6.mp3","start":63.0163,"duration":1.5625},"unit-6-038":{"file":"./audio/us-guy/unit-6.mp3","start":64.5788,"duration":1.48098},"unit-6-039":{"file":"./audio/us-guy/unit-6.mp3","start":66.05978,"duration":1.57609},"unit-6-040":{"file":"./audio/us-guy/unit-6.mp3","start":67.63587,"duration":1.6712},"unit-6-041":{"file":"./audio/us-guy/unit-6.mp3","start":69.30706,"duration":1.52174},"unit-6-042":{"file":"./audio/us-guy/unit-6.mp3","start":70.8288,"duration":1.60326},"unit-6-043":{"file":"./audio/us-guy/unit-6.mp3","start":72.43206,"duration":1.50815},"unit-6-044":{"file":"./audio/us-guy/unit-6.mp3","start":73.94022,"duration":1.63043},"unit-6-045":{"file":"./audio/us-guy/unit-6.mp3","start":75.57065,"duration":1.60326},"unit-6-046":{"file":"./audio/us-guy/unit-6.mp3","start":77.17391,"duration":1.79348},"unit-6-047":{"file":"./audio/us-guy/unit-6.mp3","start":78.96739,"duration":1.92935},"unit-6-048":{"file":"./audio/us-guy/unit-6.mp3","start":80.89674,"duration":1.54891},"unit-6-049":{"file":"./audio/us-guy/unit-6.mp3","start":82.44565,"duration":1.69837},"unit-6-050":{"file":"./audio/us-guy/unit-6.mp3","start":84.14402,"duration":1.48098},"unit-6-051":{"file":"./audio/us-guy/unit-6.mp3","start":85.625,"duration":1.84783},"unit-6-052":{"file":"./audio/us-guy/unit-6.mp3","start":87.47282,"duration":1.6712},"unit-6-053":{"file":"./audio/us-guy/unit-6.mp3","start":89.14402,"duration":1.53533},"unit-6-054":{"file":"./audio/us-guy/unit-6.mp3","start":90.67935,"duration":1.58967},"unit-6-055":{"file":"./audio/us-guy/unit-6.mp3","start":92.26902,"duration":1.57609},"unit-6-056":{"file":"./audio/us-guy/unit-6.mp3","start":93.84511,"duration":1.92935},"unit-6-057":{"file":"./audio/us-guy/unit-6.mp3","start":95.77445,"duration":2.10598},"unit-6-058":{"file":"./audio/us-guy/unit-6.mp3","start":97.88043,"duration":1.77989},"unit-7-001":{"file":"./audio/us-guy/unit-7.mp3","start":0.1,"duration":1.7163},"unit-7-002":{"file":"./audio/us-guy/unit-7.mp3","start":1.7663,"duration":1.77989},"unit-7-003":{"file":"./audio/us-guy/unit-7.mp3","start":3.5462,"duration":1.99728},"unit-7-004":{"file":"./audio/us-guy/unit-7.mp3","start":5.54348,"duration":1.75272},"unit-7-005":{"file":"./audio/us-guy/unit-7.mp3","start":7.2962,"duration":1.73913},"unit-7-006":{"file":"./audio/us-guy/unit-7.mp3","start":9.03533,"duration":1.50815},"unit-7-007":{"file":"./audio/us-guy/unit-7.mp3","start":10.54348,"duration":1.94293},"unit-7-008":{"file":"./audio/us-guy/unit-7.mp3","start":12.48641,"duration":1.53533},"unit-7-009":{"file":"./audio/us-guy/unit-7.mp3","start":14.02174,"duration":1.69837},"unit-7-010":{"file":"./audio/us-guy/unit-7.mp3","start":15.72011,"duration":1.79348},"unit-7-011":{"file":"./audio/us-guy/unit-7.mp3","start":17.51359,"duration":1.58967},"unit-7-012":{"file":"./audio/us-guy/unit-7.mp3","start":19.10326,"duration":1.6712},"unit-7-013":{"file":"./audio/us-guy/unit-7.mp3","start":20.77446,"duration":1.71196},"unit-7-014":{"file":"./audio/us-guy/unit-7.mp3","start":22.48641,"duration":1.61685},"unit-7-015":{"file":"./audio/us-guy/unit-7.mp3","start":24.10326,"duration":1.53533},"unit-7-016":{"file":"./audio/us-guy/unit-7.mp3","start":25.63859,"duration":1.75272},"unit-7-017":{"file":"./audio/us-guy/unit-7.mp3","start":27.3913,"duration":1.84783},"unit-7-018":{"file":"./audio/us-guy/unit-7.mp3","start":29.23913,"duration":1.77989},"unit-7-019":{"file":"./audio/us-guy/unit-7.mp3","start":31.01902,"duration":1.9837},"unit-7-020":{"file":"./audio/us-guy/unit-7.mp3","start":33.00272,"duration":1.79348},"unit-7-021":{"file":"./audio/us-guy/unit-7.mp3","start":34.79619,"duration":1.99728},"unit-7-022":{"file":"./audio/us-guy/unit-7.mp3","start":36.79348,"duration":1.90217},"unit-7-023":{"file":"./audio/us-guy/unit-7.mp3","start":38.69565,"duration":1.71196},"unit-7-024":{"file":"./audio/us-guy/unit-7.mp3","start":40.40761,"duration":1.48098},"unit-7-025":{"file":"./audio/us-guy/unit-7.mp3","start":41.88859,"duration":1.63043},"unit-7-026":{"file":"./audio/us-guy/unit-7.mp3","start":43.51902,"duration":1.58967},"unit-7-027":{"file":"./audio/us-guy/unit-7.mp3","start":45.10869,"duration":1.5625},"unit-7-028":{"file":"./audio/us-guy/unit-7.mp3","start":46.67119,"duration":1.71196},"unit-7-029":{"file":"./audio/us-guy/unit-7.mp3","start":48.38315,"duration":1.80707},"unit-7-030":{"file":"./audio/us-guy/unit-7.mp3","start":50.19022,"duration":1.64402},"unit-7-031":{"file":"./audio/us-guy/unit-7.mp3","start":51.83424,"duration":1.77989},"unit-7-032":{"file":"./audio/us-guy/unit-7.mp3","start":53.61413,"duration":1.86141},"unit-7-033":{"file":"./audio/us-guy/unit-7.mp3","start":55.47554,"duration":1.54891},"unit-7-034":{"file":"./audio/us-guy/unit-7.mp3","start":57.02446,"duration":1.875},"unit-7-035":{"file":"./audio/us-guy/unit-7.mp3","start":58.89946,"duration":2.05163},"unit-7-036":{"file":"./audio/us-guy/unit-7.mp3","start":60.95109,"duration":1.71196},"unit-7-037":{"file":"./audio/us-guy/unit-7.mp3","start":62.66304,"duration":1.5625},"unit-7-038":{"file":"./audio/us-guy/unit-7.mp3","start":64.22554,"duration":1.75272},"unit-7-039":{"file":"./audio/us-guy/unit-7.mp3","start":65.97826,"duration":1.50815},"unit-7-040":{"file":"./audio/us-guy/unit-7.mp3","start":67.48641,"duration":1.60326},"unit-7-041":{"file":"./audio/us-guy/unit-7.mp3","start":69.08967,"duration":1.57609},"unit-7-042":{"file":"./audio/us-guy/unit-7.mp3","start":70.66576,"duration":1.72554},"unit-7-043":{"file":"./audio/us-guy/unit-7.mp3","start":72.3913,"duration":1.72554},"unit-7-044":{"file":"./audio/us-guy/unit-7.mp3","start":74.11685,"duration":1.53533},"unit-7-045":{"file":"./audio/us-guy/unit-7.mp3","start":75.65217,"duration":1.6712},"unit-7-046":{"file":"./audio/us-guy/unit-7.mp3","start":77.32337,"duration":1.86141},"unit-7-047":{"file":"./audio/us-guy/unit-7.mp3","start":79.18478,"duration":1.75272},"unit-7-048":{"file":"./audio/us-guy/unit-7.mp3","start":80.9375,"duration":1.69837},"unit-7-049":{"file":"./audio/us-guy/unit-7.mp3","start":82.63587,"duration":1.68478},"unit-7-050":{"file":"./audio/us-guy/unit-7.mp3","start":84.32065,"duration":1.91576},"unit-8-001":{"file":"./audio/us-guy/unit-8.mp3","start":0.1,"duration":1.66196},"unit-8-002":{"file":"./audio/us-guy/unit-8.mp3","start":1.71196,"duration":2.1875},"unit-8-003":{"file":"./audio/us-guy/unit-8.mp3","start":3.89946,"duration":1.48098},"unit-8-004":{"file":"./audio/us-guy/unit-8.mp3","start":5.38043,"duration":1.86141},"unit-8-005":{"file":"./audio/us-guy/unit-8.mp3","start":7.24185,"duration":1.53533},"unit-8-006":{"file":"./audio/us-guy/unit-8.mp3","start":8.77717,"duration":1.64402},"unit-8-007":{"file":"./audio/us-guy/unit-8.mp3","start":10.4212,"duration":1.6712},"unit-8-008":{"file":"./audio/us-guy/unit-8.mp3","start":12.09239,"duration":1.88859},"unit-8-009":{"file":"./audio/us-guy/unit-8.mp3","start":13.98098,"duration":1.54891},"unit-8-010":{"file":"./audio/us-guy/unit-8.mp3","start":15.52989,"duration":1.69837},"unit-8-011":{"file":"./audio/us-guy/unit-8.mp3","start":17.22826,"duration":1.60326},"unit-8-012":{"file":"./audio/us-guy/unit-8.mp3","start":18.83152,"duration":1.86141},"unit-8-013":{"file":"./audio/us-guy/unit-8.mp3","start":20.69293,"duration":1.46739},"unit-8-014":{"file":"./audio/us-guy/unit-8.mp3","start":22.16033,"duration":1.80707},"unit-8-015":{"file":"./audio/us-guy/unit-8.mp3","start":23.96739,"duration":1.75272},"unit-8-016":{"file":"./audio/us-guy/unit-8.mp3","start":25.72011,"duration":1.64402},"unit-8-017":{"file":"./audio/us-guy/unit-8.mp3","start":27.36413,"duration":1.68478},"unit-8-018":{"file":"./audio/us-guy/unit-8.mp3","start":29.04891,"duration":1.6712},"unit-8-019":{"file":"./audio/us-guy/unit-8.mp3","start":30.72011,"duration":1.69837},"unit-8-020":{"file":"./audio/us-guy/unit-8.mp3","start":32.41848,"duration":1.75272},"unit-8-021":{"file":"./audio/us-guy/unit-8.mp3","start":34.17119,"duration":1.86141},"unit-8-022":{"file":"./audio/us-guy/unit-8.mp3","start":36.03261,"duration":1.5625},"unit-8-023":{"file":"./audio/us-guy/unit-8.mp3","start":37.59511,"duration":1.92935},"unit-8-024":{"file":"./audio/us-guy/unit-8.mp3","start":39.52446,"duration":1.82065},"unit-8-025":{"file":"./audio/us-guy/unit-8.mp3","start":41.34511,"duration":1.46739},"unit-8-026":{"file":"./audio/us-guy/unit-8.mp3","start":42.8125,"duration":1.46739},"unit-8-027":{"file":"./audio/us-guy/unit-8.mp3","start":44.27989,"duration":1.73913},"unit-8-028":{"file":"./audio/us-guy/unit-8.mp3","start":46.01902,"duration":1.50815},"unit-8-029":{"file":"./audio/us-guy/unit-8.mp3","start":47.52717,"duration":1.68478},"unit-8-030":{"file":"./audio/us-guy/unit-8.mp3","start":49.21196,"duration":1.60326},"unit-8-031":{"file":"./audio/us-guy/unit-8.mp3","start":50.81522,"duration":1.69837},"unit-8-032":{"file":"./audio/us-guy/unit-8.mp3","start":52.51359,"duration":1.82065},"unit-8-033":{"file":"./audio/us-guy/unit-8.mp3","start":54.33424,"duration":1.54891},"unit-8-034":{"file":"./audio/us-guy/unit-8.mp3","start":55.88315,"duration":1.65761},"unit-8-035":{"file":"./audio/us-guy/unit-8.mp3","start":57.54076,"duration":1.58967},"unit-8-036":{"file":"./audio/us-guy/unit-8.mp3","start":59.13043,"duration":1.82065},"unit-8-037":{"file":"./audio/us-guy/unit-8.mp3","start":60.95109,"duration":1.84783},"unit-8-038":{"file":"./audio/us-guy/unit-8.mp3","start":62.79891,"duration":1.63043},"unit-8-039":{"file":"./audio/us-guy/unit-8.mp3","start":64.42935,"duration":1.97011},"unit-8-040":{"file":"./audio/us-guy/unit-8.mp3","start":66.39946,"duration":1.50815},"unit-8-041":{"file":"./audio/us-guy/unit-8.mp3","start":67.90761,"duration":1.72554},"unit-8-042":{"file":"./audio/us-guy/unit-8.mp3","start":69.63315,"duration":1.53533},"unit-8-043":{"file":"./audio/us-guy/unit-8.mp3","start":71.16848,"duration":1.52174},"unit-8-044":{"file":"./audio/us-guy/unit-8.mp3","start":72.69022,"duration":1.60326},"unit-8-045":{"file":"./audio/us-guy/unit-8.mp3","start":74.29348,"duration":1.69837},"unit-8-046":{"file":"./audio/us-guy/unit-8.mp3","start":75.99185,"duration":2.59511},"unit-8-047":{"file":"./audio/us-guy/unit-8.mp3","start":78.58696,"duration":1.69837},"unit-8-048":{"file":"./audio/us-guy/unit-8.mp3","start":80.28532,"duration":1.73913},"unit-8-049":{"file":"./audio/us-guy/unit-8.mp3","start":82.02446,"duration":1.80707},"unit-8-050":{"file":"./audio/us-guy/unit-8.mp3","start":83.83152,"duration":1.79348},"unit-8-051":{"file":"./audio/us-guy/unit-8.mp3","start":85.625,"duration":1.61685},"unit-8-052":{"file":"./audio/us-guy/unit-8.mp3","start":87.24185,"duration":1.6712},"unit-8-053":{"file":"./audio/us-guy/unit-8.mp3","start":88.91304,"duration":1.65761},"unit-8-054":{"file":"./audio/us-guy/unit-8.mp3","start":90.57065,"duration":1.52174},"unit-8-055":{"file":"./audio/us-guy/unit-8.mp3","start":92.09239,"duration":2.01087},"unit-8-056":{"file":"./audio/us-guy/unit-8.mp3","start":94.10326,"duration":1.68478},"unit-8-057":{"file":"./audio/us-guy/unit-8.mp3","start":95.78804,"duration":1.58967},"unit-8-058":{"file":"./audio/us-guy/unit-8.mp3","start":97.37772,"duration":2.16033},"unit-8-059":{"file":"./audio/us-guy/unit-8.mp3","start":99.53804,"duration":1.58967},"unit-8-060":{"file":"./audio/us-guy/unit-8.mp3","start":101.12772,"duration":1.7663},"unit-8-061":{"file":"./audio/us-guy/unit-8.mp3","start":102.89402,"duration":1.71196},"unit-8-062":{"file":"./audio/us-guy/unit-8.mp3","start":104.60598,"duration":1.54891},"unit-8-063":{"file":"./audio/us-guy/unit-8.mp3","start":106.15489,"duration":1.84783},"unit-8-064":{"file":"./audio/us-guy/unit-8.mp3","start":108.00272,"duration":2.69022},"unit-8-065":{"file":"./audio/us-guy/unit-8.mp3","start":110.69293,"duration":1.83424},"unit-8-066":{"file":"./audio/us-guy/unit-8.mp3","start":112.52717,"duration":1.88859}}}};
+
+</script>
+    <script>
 (function () {
   "use strict";
 
@@ -5171,11 +5276,17 @@ window.DEFAULT_WORD_BANK = {
   const DEFAULT_BANK = window.DEFAULT_WORD_BANK || { schemaVersion: 1, units: [] };
   const DEFAULT_SETTINGS = {
     selectedUnits: ["unit-1"],
+    excludedWordIds: [],
     mode: "sequence",
     rate: 0.8,
     repeat: 1,
-    voiceURI: "",
+    repeatGap: 2,
+    voiceURI: "pack:us-jenny",
     autoAdvance: false,
+  };
+  const BUNDLED_VOICE_DATA = window.BUNDLED_VOICE_DATA || {
+    packs: [],
+    cues: {},
   };
   const ACCENT_PRESETS = [
     { value: "", label: "自动选择（优先英式）", lang: "en-GB" },
@@ -5191,6 +5302,11 @@ window.DEFAULT_WORD_BANK = {
   let toastTimer = null;
   let speechToken = 0;
   let autoAdvanceCountdownTimer = null;
+  let audioContext = null;
+  let activeAudioSource = null;
+  const audioBufferCache = new Map();
+  const expandedUnitIds = new Set();
+  let bundledFallbackNotified = false;
 
   const elements = {
     views: Array.from(document.querySelectorAll(".view")),
@@ -5205,7 +5321,7 @@ window.DEFAULT_WORD_BANK = {
     clearUnits: document.getElementById("clearUnits"),
     startButton: document.getElementById("startButton"),
     testVoiceButton: document.getElementById("testVoiceButton"),
-    speechRate: document.getElementById("speechRate"),
+    repeatGap: document.getElementById("repeatGap"),
     repeatCount: document.getElementById("repeatCount"),
     voiceSelect: document.getElementById("voiceSelect"),
     autoAdvance: document.getElementById("autoAdvance"),
@@ -5214,6 +5330,7 @@ window.DEFAULT_WORD_BANK = {
     resumeButton: document.getElementById("resumeButton"),
     pauseButton: document.getElementById("pauseButton"),
     endButton: document.getElementById("endButton"),
+    previousButton: document.getElementById("previousButton"),
     replayButton: document.getElementById("replayButton"),
     nextButton: document.getElementById("nextButton"),
     dictationUnits: document.getElementById("dictationUnits"),
@@ -5385,38 +5502,111 @@ window.DEFAULT_WORD_BANK = {
     const units = getAllUnits();
     const validIds = new Set(units.map((unit) => unit.id));
     state.settings.selectedUnits = state.settings.selectedUnits.filter((id) => validIds.has(id));
+    if (!Array.isArray(state.settings.excludedWordIds)) {
+      state.settings.excludedWordIds = [];
+    }
+    const excludedIds = new Set(state.settings.excludedWordIds);
 
     elements.unitGrid.innerHTML = units
       .map((unit) => {
-        const checked = state.settings.selectedUnits.includes(unit.id) ? "checked" : "";
-        const words = Array.isArray(unit.words) ? unit.words.length : 0;
+        const unitWords = Array.isArray(unit.words) ? unit.words : [];
+        const isSelected = state.settings.selectedUnits.includes(unit.id);
+        const includedCount = isSelected
+          ? unitWords.filter(
+              (word, index) =>
+                !excludedIds.has(getWordIdentifier(word, unit.id, index)),
+            ).length
+          : 0;
+        const checked =
+          isSelected && includedCount === unitWords.length && unitWords.length ? "checked" : "";
+        const expanded = expandedUnitIds.has(unit.id);
+        const wordOptions = unitWords
+          .map((word, index) => {
+            const wordId = getWordIdentifier(word, unit.id, index);
+            const wordChecked = isSelected && !excludedIds.has(wordId) ? "checked" : "";
+            return `
+              <label class="word-option">
+                <input
+                  type="checkbox"
+                  value="${escapeHtml(wordId)}"
+                  data-word-checkbox
+                  data-unit-id="${escapeHtml(unit.id)}"
+                  ${wordChecked}
+                />
+                <span>
+                  <strong>${escapeHtml(word.word || "")}</strong>
+                  <small>${escapeHtml(word.meaning || "")}</small>
+                </span>
+              </label>
+            `;
+          })
+          .join("");
         return `
-          <label class="unit-option">
-            <input type="checkbox" value="${escapeHtml(unit.id)}" ${checked} />
-            <span class="unit-card">
-              <span>
-                <strong>${escapeHtml(unit.label || unit.id)}</strong>
-                <small>${escapeHtml(unit.title || "")} · ${escapeHtml(unit.chineseTitle || "")}</small>
-              </span>
-              <em>${words} 个词</em>
-            </span>
-          </label>
+          <article class="unit-option ${expanded ? "is-expanded" : ""}">
+            <div class="unit-header">
+              <label class="unit-selector">
+                <input
+                  class="unit-checkbox"
+                  type="checkbox"
+                  value="${escapeHtml(unit.id)}"
+                  data-unit-checkbox
+                  data-included-count="${includedCount}"
+                  data-total-count="${unitWords.length}"
+                  ${checked}
+                />
+                <span class="unit-card">
+                  <span>
+                    <strong>${escapeHtml(unit.label || unit.id)}</strong>
+                    <small>${escapeHtml(unit.title || "")} · ${escapeHtml(unit.chineseTitle || "")}</small>
+                  </span>
+                  <em>已选 ${includedCount} / ${unitWords.length} 个词</em>
+                </span>
+              </label>
+              <button
+                class="unit-expand"
+                type="button"
+                data-expand-unit="${escapeHtml(unit.id)}"
+                aria-expanded="${expanded}"
+              >${expanded ? "收起选词" : "展开选词"}</button>
+            </div>
+            <div class="word-picker ${expanded ? "" : "is-hidden"}">
+              ${wordOptions}
+            </div>
+          </article>
         `;
       })
       .join("");
 
+    elements.unitGrid.querySelectorAll("[data-unit-checkbox]").forEach((input) => {
+      const included = Number(input.dataset.includedCount) || 0;
+      const total = Number(input.dataset.totalCount) || 0;
+      input.indeterminate = included > 0 && included < total;
+    });
     updateSelectionSummary();
+  }
+
+  function getWordIdentifier(word, unitId, index) {
+    return word?.id || `${unitId}-word-${index + 1}`;
+  }
+
+  function getIncludedWordsForUnit(unit) {
+    if (!state.settings.selectedUnits.includes(unit.id)) return [];
+    const excludedIds = new Set(state.settings.excludedWordIds || []);
+    return (unit.words || []).filter(
+      (word, index) => !excludedIds.has(getWordIdentifier(word, unit.id, index)),
+    );
   }
 
   function updateSelectionSummary() {
     const units = getAllUnits().filter((unit) =>
       state.settings.selectedUnits.includes(unit.id),
     );
-    const count = units.reduce((sum, unit) => sum + (unit.words?.length || 0), 0);
-    elements.selectionSummary.textContent = units.length
-      ? `已选 ${units.length} 个单元，共 ${count} 个词`
+    const count = units.reduce((sum, unit) => sum + getIncludedWordsForUnit(unit).length, 0);
+    const activeUnitCount = units.filter((unit) => getIncludedWordsForUnit(unit).length).length;
+    elements.selectionSummary.textContent = count
+      ? `已选 ${activeUnitCount} 个单元，共 ${count} 个词`
       : "请选择至少一个单元";
-    elements.startButton.disabled = units.length === 0;
+    elements.startButton.disabled = count === 0;
   }
 
   function applySettingsToControls() {
@@ -5424,7 +5614,7 @@ window.DEFAULT_WORD_BANK = {
       `input[name="dictationMode"][value="${state.settings.mode}"]`,
     );
     if (modeInput) modeInput.checked = true;
-    elements.speechRate.value = String(state.settings.rate);
+    elements.repeatGap.value = String(state.settings.repeatGap || 2);
     elements.autoAdvance.checked = Boolean(state.settings.autoAdvance);
     elements.repeatCount.value = String(state.settings.autoAdvance ? 3 : state.settings.repeat);
     elements.repeatCount.disabled = Boolean(state.settings.autoAdvance);
@@ -5434,7 +5624,10 @@ window.DEFAULT_WORD_BANK = {
   function readSettingsFromControls() {
     const modeInput = document.querySelector('input[name="dictationMode"]:checked');
     state.settings.mode = modeInput?.value === "random" ? "random" : "sequence";
-    state.settings.rate = Number(elements.speechRate.value) || 0.8;
+    state.settings.repeatGap = Math.max(
+      1,
+      Math.min(7, Number(elements.repeatGap.value) || 2),
+    );
     state.settings.autoAdvance = Boolean(elements.autoAdvance.checked);
     state.settings.repeat = state.settings.autoAdvance
       ? 3
@@ -5461,16 +5654,24 @@ window.DEFAULT_WORD_BANK = {
     }
 
     let order = selectedUnits.flatMap((unit) =>
-      (unit.words || []).map((word) => ({
-        id: word.id || createId("word"),
+      getIncludedWordsForUnit(unit).map((word) => {
+        const originalIndex = (unit.words || []).indexOf(word);
+        return {
+        id: getWordIdentifier(word, unit.id, originalIndex),
         unitId: unit.id,
         unitLabel: unit.label || unit.id,
         word: word.word,
         speech: word.speech || word.word,
         phonetic: word.phonetic || "",
         meaning: word.meaning || "",
-      })),
+        };
+      }),
     );
+
+    if (!order.length) {
+      showToast("请至少勾选一个要听写的单词");
+      return;
+    }
 
     if (state.settings.mode === "random") order = shuffle(order);
 
@@ -5482,6 +5683,7 @@ window.DEFAULT_WORD_BANK = {
       mode: state.settings.mode,
       rate: state.settings.rate,
       repeat: state.settings.repeat,
+      repeatGap: state.settings.repeatGap,
       voiceURI: state.settings.voiceURI,
       autoAdvance: state.settings.autoAdvance,
       cursor: 0,
@@ -5490,13 +5692,13 @@ window.DEFAULT_WORD_BANK = {
     };
     saveState();
     setView("dictation");
-    window.setTimeout(playCurrentWord, 160);
+    playCurrentWord();
   }
 
   function resumeSession() {
     if (!state.activeSession) return;
     setView("dictation");
-    window.setTimeout(playCurrentWord, 160);
+    playCurrentWord();
   }
 
   function renderDictation() {
@@ -5511,6 +5713,7 @@ window.DEFAULT_WORD_BANK = {
     elements.dictationUnits.textContent = session.unitLabels.join(" + ");
     elements.dictationProgressText.textContent = `${current} / ${total}`;
     elements.dictationProgressBar.style.width = `${(current / total) * 100}%`;
+    elements.previousButton.disabled = session.cursor === 0;
     elements.nextButton.innerHTML =
       current === total
         ? '完成听写 <span aria-hidden="true">✓</span>'
@@ -5543,6 +5746,117 @@ window.DEFAULT_WORD_BANK = {
     );
   }
 
+  function getBundledPack(selection) {
+    return (BUNDLED_VOICE_DATA.packs || []).find((pack) => pack.value === selection) || null;
+  }
+
+  function getBundledCue(selection, wordId) {
+    return BUNDLED_VOICE_DATA.cues?.[selection]?.[wordId] || null;
+  }
+
+  function isBundledVoice(selection) {
+    return Boolean(getBundledPack(selection));
+  }
+
+  function getAudioContext() {
+    if (!audioContext) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      audioContext = new AudioContextClass();
+    }
+    return audioContext;
+  }
+
+  async function loadAudioBuffer(file) {
+    if (audioBufferCache.has(file)) {
+      const cached = audioBufferCache.get(file);
+      audioBufferCache.delete(file);
+      audioBufferCache.set(file, cached);
+      return cached;
+    }
+
+    const context = getAudioContext();
+    if (!context) throw new Error("AudioContext is not supported");
+    const request = fetch(file)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Audio file ${response.status}`);
+        return response.arrayBuffer();
+      })
+      .then((buffer) => context.decodeAudioData(buffer));
+    audioBufferCache.set(file, request);
+    while (audioBufferCache.size > 3) {
+      const oldest = audioBufferCache.keys().next().value;
+      if (oldest === file) break;
+      audioBufferCache.delete(oldest);
+    }
+    try {
+      return await request;
+    } catch (error) {
+      audioBufferCache.delete(file);
+      throw error;
+    }
+  }
+
+  function playBundledAudio(item, cue, options = {}) {
+    stopSpeech();
+    const token = speechToken;
+    const repeat = Math.max(1, Math.min(3, Number(options.repeat) || 1));
+    const repeatGapMs =
+      Math.max(1, Math.min(7, Number(options.repeatGap) || 2)) * 1000;
+    const context = getAudioContext();
+    if (!context) {
+      speak(item.speech || item.word, {
+        ...options,
+        voiceURI: "accent:en-US",
+      });
+      return;
+    }
+
+    context.resume().catch(() => {});
+    elements.speakingStatus.textContent = "正在加载网站内置美式发音…";
+    let completed = 0;
+
+    const run = async () => {
+      if (token !== speechToken) return;
+      try {
+        const buffer = await loadAudioBuffer(cue.file);
+        if (token !== speechToken) return;
+        await context.resume();
+        if (token !== speechToken) return;
+
+        const source = context.createBufferSource();
+        activeAudioSource = source;
+        source.buffer = buffer;
+        source.connect(context.destination);
+        source.onended = () => {
+          if (activeAudioSource === source) activeAudioSource = null;
+          if (token !== speechToken) return;
+          completed += 1;
+          if (completed < repeat) {
+            window.setTimeout(run, repeatGapMs);
+          } else if (typeof options.onComplete === "function") {
+            options.onComplete();
+          } else {
+            elements.speakingStatus.textContent = "播放完成，可以书写或进入下一个";
+          }
+        };
+        elements.speakingStatus.textContent =
+          repeat > 1 ? `正在播放第 ${completed + 1} / ${repeat} 遍…` : "正在播放发音…";
+        source.start(0, Math.max(0, cue.start), Math.max(0.1, cue.duration));
+      } catch (error) {
+        console.warn("网站内置语音加载失败，改用系统发音", error);
+        if (token !== speechToken) return;
+        showToast("内置语音加载失败，已临时改用手机系统发音");
+        speak(item.speech || item.word, {
+          ...options,
+          voiceURI: "accent:en-US",
+        });
+      }
+    };
+
+    run();
+  }
+
   function speak(text, options = {}) {
     if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
       showToast("当前浏览器不支持语音朗读，请换用 Chrome、Edge 或 Safari");
@@ -5553,6 +5867,8 @@ window.DEFAULT_WORD_BANK = {
     const token = speechToken;
     const repeat = Math.max(1, Math.min(3, Number(options.repeat) || 1));
     const rate = Number(options.rate) || 0.8;
+    const repeatGapMs =
+      Math.max(1, Math.min(7, Number(options.repeatGap) || 2)) * 1000;
     const voiceSelection = options.voiceURI || "";
     const voice = getSelectedVoice(voiceSelection);
     const language = getAccentLanguage(voiceSelection) || voice?.lang || "en-GB";
@@ -5571,7 +5887,7 @@ window.DEFAULT_WORD_BANK = {
         if (token !== speechToken) return;
         completed += 1;
         if (completed < repeat) {
-          window.setTimeout(run, 620);
+          window.setTimeout(run, repeatGapMs);
         } else if (typeof options.onComplete === "function") {
           options.onComplete();
         } else {
@@ -5592,6 +5908,15 @@ window.DEFAULT_WORD_BANK = {
   function stopSpeech() {
     speechToken += 1;
     clearAutoAdvanceCountdown();
+    if (activeAudioSource) {
+      activeAudioSource.onended = null;
+      try {
+        activeAudioSource.stop();
+      } catch (error) {
+        // The source may already have ended.
+      }
+      activeAudioSource = null;
+    }
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   }
 
@@ -5643,14 +5968,38 @@ window.DEFAULT_WORD_BANK = {
     if (!session) return;
     const item = session.order[session.cursor];
     if (!item) return;
-    speak(item.speech || item.word, {
+    const options = {
       rate: session.rate,
       repeat: session.autoAdvance ? 3 : session.repeat,
+      repeatGap: session.repeatGap || 2,
       voiceURI: session.voiceURI,
       onComplete: session.autoAdvance
         ? () => scheduleAutoAdvance(session.id, session.cursor)
         : null,
+    };
+    const cue = getBundledCue(session.voiceURI, item.id);
+    if (cue) {
+      playBundledAudio(item, cue, options);
+      return;
+    }
+    if (isBundledVoice(session.voiceURI) && !bundledFallbackNotified) {
+      bundledFallbackNotified = true;
+      showToast("这个自定义单词暂无内置录音，已改用手机系统发音");
+    }
+    speak(item.speech || item.word, {
+      ...options,
+      voiceURI: isBundledVoice(session.voiceURI) ? "accent:en-US" : session.voiceURI,
     });
+  }
+
+  function goToPreviousWord() {
+    const session = state.activeSession;
+    if (!session || session.cursor <= 0) return;
+    stopSpeech();
+    session.cursor -= 1;
+    saveState();
+    renderDictation();
+    window.setTimeout(playCurrentWord, 100);
   }
 
   function goToNextWord() {
@@ -6069,17 +6418,24 @@ window.DEFAULT_WORD_BANK = {
   }
 
   function loadVoices() {
-    if (!("speechSynthesis" in window)) return;
-    availableVoices = window.speechSynthesis
-      .getVoices()
-      .filter((voice) => /^en/i.test(voice.lang))
-      .sort((a, b) => {
-        const aBritish = /^en-GB/i.test(a.lang) ? 0 : 1;
-        const bBritish = /^en-GB/i.test(b.lang) ? 0 : 1;
-        return aBritish - bBritish || a.name.localeCompare(b.name);
-      });
+    availableVoices = "speechSynthesis" in window
+      ? window.speechSynthesis
+          .getVoices()
+          .filter((voice) => /^en/i.test(voice.lang))
+          .sort((a, b) => {
+            const aAmerican = /^en-US/i.test(a.lang) ? 0 : 1;
+            const bAmerican = /^en-US/i.test(b.lang) ? 0 : 1;
+            return aAmerican - bAmerican || a.name.localeCompare(b.name);
+          })
+      : [];
 
     const previous = state.settings.voiceURI || "";
+    const bundledOptions = (BUNDLED_VOICE_DATA.packs || [])
+      .map(
+        (pack) =>
+          `<option value="${escapeHtml(pack.value)}">${escapeHtml(pack.label)}</option>`,
+      )
+      .join("");
     const accentOptions = ACCENT_PRESETS.map(
       (preset) =>
         `<option value="${escapeHtml(preset.value)}">${escapeHtml(preset.label)}</option>`,
@@ -6093,11 +6449,15 @@ window.DEFAULT_WORD_BANK = {
           .join("")}</optgroup>`
       : "";
     elements.voiceSelect.innerHTML =
-      `<optgroup label="口音（所有手机可选）">${accentOptions}</optgroup>${systemVoiceOptions}`;
+      `${bundledOptions ? `<optgroup label="网站内置语音（推荐，不依赖手机）">${bundledOptions}</optgroup>` : ""}` +
+      `<optgroup label="手机系统口音（不同手机音色可能相同）">${accentOptions}</optgroup>${systemVoiceOptions}`;
     const selectionStillAvailable =
+      (BUNDLED_VOICE_DATA.packs || []).some((pack) => pack.value === previous) ||
       ACCENT_PRESETS.some((preset) => preset.value === previous) ||
       availableVoices.some((voice) => voice.voiceURI === previous);
-    elements.voiceSelect.value = selectionStillAvailable ? previous : "";
+    elements.voiceSelect.value = selectionStillAvailable
+      ? previous
+      : BUNDLED_VOICE_DATA.packs?.[0]?.value || "";
   }
 
   function bindEvents() {
@@ -6107,24 +6467,70 @@ window.DEFAULT_WORD_BANK = {
 
     elements.brandHomeButton.addEventListener("click", () => setView("home"));
 
+    elements.unitGrid.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-expand-unit]");
+      if (!button) return;
+      const unitId = button.dataset.expandUnit;
+      if (expandedUnitIds.has(unitId)) {
+        expandedUnitIds.delete(unitId);
+      } else {
+        expandedUnitIds.add(unitId);
+      }
+      renderUnitGrid();
+    });
+
     elements.unitGrid.addEventListener("change", (event) => {
       const input = event.target.closest('input[type="checkbox"]');
       if (!input) return;
-      if (input.checked) {
-        if (!state.settings.selectedUnits.includes(input.value)) {
-          state.settings.selectedUnits.push(input.value);
+      const excludedIds = new Set(state.settings.excludedWordIds || []);
+
+      if (input.matches("[data-unit-checkbox]")) {
+        const unit = getAllUnits().find((item) => item.id === input.value);
+        if (!unit) return;
+        if (input.checked) {
+          if (!state.settings.selectedUnits.includes(input.value)) {
+            state.settings.selectedUnits.push(input.value);
+          }
+          (unit.words || []).forEach((word, index) => {
+            excludedIds.delete(getWordIdentifier(word, unit.id, index));
+          });
+        } else {
+          state.settings.selectedUnits = state.settings.selectedUnits.filter(
+            (id) => id !== input.value,
+          );
         }
-      } else {
-        state.settings.selectedUnits = state.settings.selectedUnits.filter(
-          (id) => id !== input.value,
-        );
       }
+
+      if (input.matches("[data-word-checkbox]")) {
+        const unitId = input.dataset.unitId;
+        if (input.checked) {
+          excludedIds.delete(input.value);
+          if (!state.settings.selectedUnits.includes(unitId)) {
+            state.settings.selectedUnits.push(unitId);
+          }
+        } else {
+          excludedIds.add(input.value);
+          const unit = getAllUnits().find((item) => item.id === unitId);
+          const remaining = (unit?.words || []).filter(
+            (word, index) =>
+              !excludedIds.has(getWordIdentifier(word, unitId, index)),
+          ).length;
+          if (!remaining) {
+            state.settings.selectedUnits = state.settings.selectedUnits.filter(
+              (id) => id !== unitId,
+            );
+          }
+        }
+      }
+
+      state.settings.excludedWordIds = Array.from(excludedIds);
       saveState();
-      updateSelectionSummary();
+      renderUnitGrid();
     });
 
     elements.selectAllUnits.addEventListener("click", () => {
       state.settings.selectedUnits = getAllUnits().map((unit) => unit.id);
+      state.settings.excludedWordIds = [];
       saveState();
       renderUnitGrid();
     });
@@ -6138,7 +6544,7 @@ window.DEFAULT_WORD_BANK = {
     document.querySelectorAll('input[name="dictationMode"]').forEach((input) => {
       input.addEventListener("change", readSettingsFromControls);
     });
-    elements.speechRate.addEventListener("change", readSettingsFromControls);
+    elements.repeatGap.addEventListener("change", readSettingsFromControls);
     elements.repeatCount.addEventListener("change", readSettingsFromControls);
     elements.voiceSelect.addEventListener("change", readSettingsFromControls);
     elements.autoAdvance.addEventListener("change", () => {
@@ -6148,11 +6554,23 @@ window.DEFAULT_WORD_BANK = {
 
     elements.testVoiceButton.addEventListener("click", () => {
       readSettingsFromControls();
-      speak("Welcome. Your listening practice is ready.", {
+      const testItem = {
+        id: "unit-1-001",
+        word: "fox",
+        speech: "fox",
+      };
+      const testOptions = {
         rate: state.settings.rate,
         repeat: 1,
+        repeatGap: state.settings.repeatGap,
         voiceURI: state.settings.voiceURI,
-      });
+      };
+      const cue = getBundledCue(state.settings.voiceURI, testItem.id);
+      if (cue) {
+        playBundledAudio(testItem, cue, testOptions);
+      } else {
+        speak("Welcome. Your listening practice is ready.", testOptions);
+      }
     });
 
     elements.startButton.addEventListener("click", startSession);
@@ -6168,6 +6586,7 @@ window.DEFAULT_WORD_BANK = {
       if (event.target === elements.finishModal) closeFinishModal();
     });
     elements.replayButton.addEventListener("click", playCurrentWord);
+    elements.previousButton.addEventListener("click", goToPreviousWord);
     elements.nextButton.addEventListener("click", goToNextWord);
 
     elements.answerList.addEventListener("click", (event) => {
